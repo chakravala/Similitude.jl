@@ -5,13 +5,44 @@ module UnitfulSystems
 
 import Base: @pure
 using UnitSystems, Unitful
+import UnitSystems: Systems, Constants, Physics, Convert
+export UnitSystems, Unitful, unitful
+const ftlb = u"slug*ft^2/s^2"
 
-for unit ∈ (UnitSystems.Constants...,UnitSystems.Physics...,UnitSystems.Convert...)
-    @eval import UnitSystems.$unit
-    @eval export $unit
+UnitSystems.unit(x::Quantity,y=1) = x
+
+for unit ∈ (Systems...,Constants...,Physics...,Convert...)
+    unit ∉ (:length,:time) && @eval export $unit
 end
 
-export UnitSystems, Unitful, unitful
+for unit ∈ (Constants...,Physics...)
+    if unit ∈ (:molarmass,:permeability,:permittivity,:charge,:magneticflux,:impedance,:conductance,:luminousefficacy)
+        @eval @pure $unit(U::UnitSystem) = UnitSystems.$unit(U)
+        @eval @doc $(string(@eval @doc UnitSystems.$unit)) $unit
+    else
+        @eval import UnitSystems.$unit
+    end
+end
+
+for unit ∈ Convert
+    @eval begin
+        @pure @inline $unit(v::Number,U::UnitSystem) = $unit(v,U,Metric)
+        @pure @inline $unit(v::Number,U::UnitSystem,S::UnitSystem) = ustrip((u=ustrip($unit(U,S));isone(u) ? v : v/u))*unit($unit(Natural,U))
+        @pure @inline $unit(v::Number,U::UnitSystem{kB,ħ,𝘤,μ₀,mₑ},S::UnitSystem{kB,ħ,𝘤,μ₀,mₑ}) where {kB,ħ,𝘤,μ₀,mₑ} = ustrip(v)*unit($unit(UnitSystems.Natural,U))
+        @pure @inline $unit(U::UnitSystem,S::UnitSystem) = UnitSystems.$unit(U,S)
+    end
+    if unit ∉ (Constants...,:permittivity,:charge,:magneticflux,:impedance,:conductance)
+        @eval @pure @inline $unit(U::UnitSystem) = $unit(U,Metric)
+        @eval @doc $(string(@eval @doc UnitSystems.$unit)) $unit
+    end
+end
+for unit ∈ (:(Base.length),:(Base.time))
+    @eval begin
+        @pure @inline $unit(v::Quantity,U::UnitSystem) = $unit(v,U,Metric)
+        @pure @inline $unit(v::Quantity,U::UnitSystem,S::UnitSystem) = ustrip((u=ustrip($unit(U,S));isone(u) ? v : v/u))*unit($unit(Natural,U))
+        @pure @inline $unit(v::Quantity,U::UnitSystem{kB,ħ,𝘤,μ₀,mₑ},S::UnitSystem{kB,ħ,𝘤,μ₀,mₑ}) where {kB,ħ,𝘤,μ₀,mₑ} = ustrip(v)*unit($unit(Natural,U))
+    end
+end
 
 """
     unitful(::UnitSystem,JK=u"J/K",Js=u"J*s",ms=u"m/s",Hm=u"H/m",kg=u"kg")
@@ -26,8 +57,8 @@ const Metric = unitful(UnitSystems.Metric)
 const SI2019 = unitful(UnitSystems.SI2019)
 const CODATA = unitful(UnitSystems.CODATA)
 const Conventional = unitful(UnitSystems.Conventional)
-const English = unitful(UnitSystems.English,u"ft*lb/Ra",u"ft*lb*s",u"ft/s",1,u"slug")
-const EnglishUS = unitful(UnitSystems.EnglishUS,u"ft*lb/Ra",u"ft*lb*s",u"ft/s",1,u"slug")
+const English = unitful(UnitSystems.English,ftlb/u"Ra",ftlb*u"s",u"ft/s",1,u"slug")
+const EnglishUS = unitful(UnitSystems.EnglishUS,ftlb/u"Ra",ftlb*u"s",u"ft/s",1,u"slug")
 
 const SI = SI2019
 
@@ -51,6 +82,12 @@ end
 @pure luminousefficacy(U::UnitSystem{boltzmann(English)}) = luminousefficacy(UnitSystems.English)*u"cd*s^3/slug/ft^2"
 @pure luminousefficacy(U::UnitSystem{boltzmann(EnglishUS)}) = luminousefficacy(UnitSystems.EnglishUS)*u"cd*s^3/slug/ft^2"
 
+for CAL ∈ (:cal,:calₜₕ,:cal₄,:cal₁₀,:cal₂₀,:calₘ,:calᵢₜ)
+    KCAL = Symbol(:k,CAL)
+    @eval const $CAL = UnitSystems.$CAL*u"cal"
+    @eval const $KCAL = UnitSystems.$KCAL*u"kcal"
+end
+
 const atm = UnitSystems.atm*u"kPa"
 const g₀ = UnitSystems.g₀*u"m/s^2"
 const lbm = UnitSystems.lbm*u"ft/s^2"
@@ -59,12 +96,6 @@ const ft = UnitSystems.ft*u"m/ft"
 const ftUS = UnitSystems.ftUS*u"m/ft"
 const rankine = UnitSystems.rankine*u"K/Ra"
 const kelvin = UnitSystems.kelvin*u"Ra/K"
-
-for CAL ∈ (:cal,:calₜₕ,:cal₄,:cal₁₀,:cal₂₀,:calₘ,:calᵢₜ)
-    KCAL = Symbol(:k,CAL)
-    @eval const $CAL = UnitSystems.$CAL*u"cal"
-    @eval const $KCAL = UnitSystems.$KCAL*u"kcal"
-end
 
 const ΔνCs = UnitSystems.ΔνCs*u"Hz"
 const Kcd = UnitSystems.Kcd*u"cd/W"
@@ -132,13 +163,11 @@ const Mu,Ru,SB,hh,cc,m0,e0,ke,me,mp,mu,ee,FF,Z0,G0,Eh,a0,re,g0,lP,ϵ₀,mB = M�
 export κ, GG, NA, kB, Rᵤ, σ, 𝘩, ħ, 𝘤, μ₀, ε₀, kₑ, mₑ, mₚ, mᵤ, 𝘦, 𝔉, Φ₀, Z₀, G₀, Eₕ, R∞, a₀, rₑ, KJ, RK, Ru, SB, hh, cc, m0, e0, ke, me, mp, mu, ee, FF, Z0, G0, Eh, a0, re, μB
 export αG, αinv, μₚₑ, μₑᵤ, μₚᵤ, mpe, meu, mpu, mP, δμ₀, Mᵤ, Mu, RH, Ry, ΔνCs, Kcd, ainv
 export cal, kcal, calₜₕ, kcalₜₕ, calᵢₜ, kcalᵢₜ, ℓP, g₀, g0, atm, lbm, aG, BTUJ, BTUftlb
-export lP, tP, TP, lS, tS, mS, qS, lA, tA, mA, qA, lQCD, tQCD, mQCD, ϵ₀
+export lP, tP, TP, lS, tS, mS, qS, lA, tA, mA, qA, lQCD, tQCD, mQCD, ϵ₀, aL, αL
 
-export slug, ft, KJ1990, KJ2014, RK1990, RK2014, mₑ1990, mₑ2014, temp, units, US
+export slug, ft, KJ1990, KJ2014, RK1990, RK2014, mₑ1990, mₑ2014, temp, units
 export slugs, kilograms, lbm, meters, feet, rankine, kelvin, moles, molecules
-export UnitSystem, CGS, CGS2019, Metric, SI2019, CODATA, Conventional, English, IAU, SI
-export EMU, ESU, CGSm, CGSe, MTS, EMU2019, ESU2019, LorentzHeaviside, HLU, EnglishUS, FFF
-export Planck, PlanckGauss, Stoney, Hartree, Rydberg, Schrodinger, Electronic, Natural, NaturalGauss, QCD, QCDGauss, QCDoriginal, SI1976, Thomson, Gauss, Mixed, Kennelly
+export UnitSystem, US, SI, CGS, CGS2019, CGSm, CGSe, HLU, FFF
 
 @doc """
     EMU2019::UnitSystem{1e7*kB,1e7*ħ,100𝘤,1e7*μ₀,1000mₑ}

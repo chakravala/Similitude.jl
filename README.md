@@ -8,9 +8,9 @@ However, the `UnitfulSystems` package has fewer `UnitSystem` specifications avai
 Specifically, `Metric`, `SI2019`, `CODATA`, `Conventional`, `MTS`, `EMU2019`, `English`, and `EnglishUS` can have `Unitful` values; while `Gauss`, `LorentzHeaviside`, `Thomson`, `EMU`, `ESU`, `ESU2019`, `IAU`, `FFF`, `Planck`, `PlanckGauss`, `Stoney`, `Hartree`, `Rydberg`, `Schrodinger`, `Electronic`, `Natural`, `NaturalGauss`, `QCD`, `QCDGauss`, and `QCDoriginal` are plain valued.
 
 ```Julia
-pkg> add UnitSystems # or UnitfulSystems
+pkg> add UnitfulSystems # or UnitSystems
 
-julia> using UnitSystems
+julia> using UnitfulSystems
 ```
 
 A `UnitSystem` is a consistent set of dimensional values selected to accomodate a particular use case or standardization.
@@ -40,12 +40,13 @@ Additional reference `UnitSystem` variants: `EMU`, `ESU`, `Gauss`, `LorentzHeavi
 
 Unt conversion documentation is at https://geophysics.crucialflow.com/dev/convert
 
-**Unit conversions:**
-Kinematic: `time`, `length`, `area`, `volume`, `wavenumber`, `fuelefficiency`, `frequency`, `frequencydrift`, `speed`, `acceleration`, `jerk`, `snap`, and `volumeflow`;
-Mechanical: `mass`, `energy`, `power`, `force`, `pressure`, `momentum`, `angularmomentum`, `yank`, `areadensity`, `density`, `specificvolume`, `action`, `specificenergy`, `stiffness`, `irradiance`, `diffusivity`, `viscosity`, `lineardensity`, `massflow`, `radiantflux`, `powerdensity`, `compressibility`, `fluence`, and `rotationalinertia`;
-Electromagnetic: `charge`, `current`, `voltage`, `capacitance`, `impedance`, `conductance`, `magneticflux`, `magneticinduction`, `inductance`, `electricinduction`, `chargedensity`, `currentdensity`, `conductivity`, `permittivity`, `permeability`, `electricfield`, `magneticfield`, `exposure`, `resistivity`, `linearchargedensity`, `magneticdipolemoment`, `mobility`, `reluctance`, `vectorpotential`, `magneticmoment`, `rigidity`, `susceptibility`, `electricflux`, and `electricdipolemoment`;
-Thermodynamic: `temperature`, `entropy`, `specificentropy`, `thermalconductivity`, `thermalconductance`, `thermalresistance`, `thermalexpansion`, and `lapserate`;
-Molar: `molarmass`, `molality`, `mole`, `molarity`, `molarvolume`, `molarentropy`, `molarenergy`, `molarconductivity`, `catalysis`, and `specificity`;
-Photometric: `luminousflux`, `luminance`, `luminousenergy`, `luminousexposure`, and `luminousefficacy`.
+**Derived Unit conversions:**
 
-Other similar packages include [PhysicalConstants.jl](https://github.com/JuliaPhysics/PhysicalConstants.jl), [MathPhysicalConstants.jl](https://github.com/LaGuer/MathPhysicalConstants.jl), [Unitful.jl](https://github.com/PainterQubits/Unitful.jl.git), [UnitfulSystems.jl](https://github.com/chakravala/UnitfulSystems.jl), [UnitfulUS.jl](https://github.com/PainterQubits/UnitfulUS.jl), [UnitfulAstro.jl](https://github.com/JuliaAstro/UnitfulAstro.jl), [UnitfulAtomic.jl](https://github.com/sostock/UnitfulAtomic.jl), [NaturallyUnitful.jl](https://github.com/MasonProtter/NaturallyUnitful.jl), and [UnitfulMoles.jl](https://github.com/rafaqz/UnitfulMoles.jl).
+Mechanics: `time`, `length`, `area`, `volume`, `wavenumber`, `fuelefficiency`, `frequency`, `frequencydrift`, `speed`, `acceleration`, `jerk`, `snap`, `volumeflow`,
+`mass`, `massflow`, `lineardensity`, `areadensity`, `density`, `specificvolume`, `force`, `stiffness`, `pressure`, `compressibility`, `viscosity`, `diffusivity`, `rotationalinertia`, `momentum`, `angularmomentum`, `yank`, `energy`, `specificenergy`, `action`, `fluence`, `power`, `powerdensity`, `intensity`, `spectralflux`, `soundexposure`, `impedance`, `specificimpedance`, `admittance`, `compliance`, `inertance`;
+Electromagnetics: `charge`, `chargedensity`, `linearchargedensity`, `exposure`, `mobility`, `current`, `currentdensity`, `resistance`, `conductance`, `resistivity`, `conductivity`, `capacitance`, `inductance`, `reluctance`, `permeance`, `permittivity`, `permeability`, `susceptibility`, `specificsusceptibility`, `demagnetizingfactor`, `vectorpotential`, `electricpotential`, `magneticpotential`, `electricfield`, `magneticfield`, `electricflux`, `magneticflux`, `electricfluxdensity`, `magneticfluxdensity`, `electricdipolemoment`, `magneticdipolemoment`, `electricpolarizability`, `magneticpolarizability`, `magneticmoment`, `magnetizability`, `magnetization`, `specificmagnetization`, `rigidity`, `polestrength`;
+Thermodynamics: `temperature`, `entropy`, `specificentropy`, `volumeheatcapacity`, `thermalconductivity`, `thermalconductance`, `thermalresistance`, `thermalexpansion`, `lapserate`,
+`molarmass`, `molality`, `mole`, `molarity`, `molarvolume`, `molarentropy`, `molarenergy`, `molarconductivity`, `molarsusceptibility`, `catalysis`, `specificity`,
+`luminousflux`, `luminance`, `luminousenergy`, `luminousexposure`, `luminousefficacy`.
+
+Other similar packages include [UnitSystems.jl](https://github.com/chakravala/UnitSystems.jl), [PhysicalConstants.jl](https://github.com/JuliaPhysics/PhysicalConstants.jl), [MathPhysicalConstants.jl](https://github.com/LaGuer/MathPhysicalConstants.jl), [Unitful.jl](https://github.com/PainterQubits/Unitful.jl.git), [UnitfulUS.jl](https://github.com/PainterQubits/UnitfulUS.jl), [UnitfulAstro.jl](https://github.com/JuliaAstro/UnitfulAstro.jl), [UnitfulAtomic.jl](https://github.com/sostock/UnitfulAtomic.jl), [NaturallyUnitful.jl](https://github.com/MasonProtter/NaturallyUnitful.jl), and [UnitfulMoles.jl](https://github.com/rafaqz/UnitfulMoles.jl).
