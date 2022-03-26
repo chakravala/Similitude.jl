@@ -1,4 +1,4 @@
-using UnitfulSystems, Test
+using Similitude, Test
 
-@test molarmass(SI2019) == molarmass(EMU2019)
-@test luminousefficacy(SI2019) == luminousefficacy(EMU2019)
+@test 1000normal(molarmass(SI2019)) ≈ normal(molarmass(EMU2019))
+@test normal(luminousefficacy(SI2019)) ≈ 1e7*normal(luminousefficacy(EMU2019))
