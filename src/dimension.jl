@@ -25,6 +25,8 @@ end
 
 value(::Dimension{D}) where D = value(D)
 
+showgroup(io::IO,x::Dimension{D},c,u) where D = showgroup(io,D,'𝟙',u)
+
 Base.show(io::IO,x::Dimension{D}) where D  = show(io,D)
 
 Base.:(==)(::Dimension{A},::Dimension{B}) where {A,B} = A == B
@@ -205,7 +207,11 @@ quantity(q::Quantity) = q.v
 @pure unitsystem(::Quantity{D,U}) where {D,U} = dimension(U)
 @pure unitsystem2(::Quantity{D,U}) where {D,U} = U
 
-Base.show(io::IO,x::Quantity{D,U}) where {D,U}  = isunknown(D) ? print(io, x.v, " {", D, "} ", unitname(U)) : print(io, x.v, " [", U(D), "] ", unitname(U))
+function Base.show(io::IO,x::Quantity{D,U}) where {D,U}
+    print(io, x.v, " [")
+    showgroup(io,U(D),'𝟙',U)
+    print(io, "] ", unitname(U))
+end
 
 Base.log(x::Quantity{D,U}) where {D,U} = Quantity{log(D),U}(log(x.v))
 Base.log2(x::Quantity{D,U}) where {D,U} = Quantity{log2(D),U}(log2(x.v))
@@ -269,7 +275,7 @@ Base.:(==)(a::Quantity{D},b::Number) where D = iszero(norm(first(value(D),dims-1
         throw(error("$(Ua) ≠ $(Ub)"))
     end
 end
-@pure sub(d::Dimension{D},::Dimension{D},U) where D = islog(D) ? d-d : d
+@pure sub(d::Dimension{D},::Dimension{D},U) where D = islog(D) ? 𝟙 : d
 @pure function sub(a::Dimension{A},b::Dimension{B},U) where {A,B}
     islog(A) && islog(B) ? a - b : add(a,b)
 end

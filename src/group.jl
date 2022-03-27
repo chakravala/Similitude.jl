@@ -182,10 +182,10 @@ function printnum(io, b, e)
 end
 
 Base.show(io::IO,x::Group) = showgroup(io,x)
-function showgroup(io::IO,x::Group{T,N},c='𝟙') where {T,N}
+function showgroup(io::IO,x::Group{T,N},c='𝟙',u=Metric) where {T,N}
     #back = T<:AbstractFloat && x.v[N]<0
     #!back && printexpo(io, 10, x.v[N])
-    printdims(io,x)
+    printdims(io,x,u)
     iz = iszero(norm(x.v))
     xc = coef(x)
     iz && (isone(xc)||abs(xc)<1) && print(io, c)
@@ -200,9 +200,9 @@ function showgroup(io::IO,x::Group{T,N},c='𝟙') where {T,N}
     end
 end
 
-function showgroup(io::IO, x::AbelianGroup, c='𝟙')
+function showgroup(io::IO, x::AbelianGroup, c='𝟙',u=Metric)
     showfun(io,x)
-    showgroup(io,dimensions(x),c)
+    showgroup(io,dimensions(x),c,u)
     print(io,')')
 end
 

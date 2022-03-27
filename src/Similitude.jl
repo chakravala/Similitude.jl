@@ -32,6 +32,9 @@ include("group.jl")
 include("dimension.jl")
 include("constant.jl")
 
+dimtext(u) = isq
+printdims(io::IO,x::Group{T,dims},u::UnitSystem) where T = printdims(io,x,dimtext(normal(u)))
+printdims(io::IO,x::Group{T,vals},u::UnitSystem) where T = printdims(io,x,basis)
 printdims(io::IO,x::Group{T,dims}) where T = printdims(io,x,isq)
 printdims(io::IO,x::Group{T,vals}) where T = printdims(io,x,basis)
 
