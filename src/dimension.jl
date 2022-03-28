@@ -73,6 +73,7 @@ const 𝟙 = Dimension(valueat(0,dims))
 for i ∈ 1:dims
     @eval const $(Symbol(isq[i])) = Dimension(valueat($i,dims))
 end
+const usq = Values(F,M,L,T,Q,Θ,N,J,A,Λ,C)
 
 @pure function factorize(x::Float64,A::Group{Int,N},B::Group{Int,N},C::Group{Int,N},D::Group{Int,N},E::Group{Int,N}) where N
     if isinteger(x)
@@ -151,7 +152,19 @@ struct ConvertUnit{D,U,S} <: AbstractModule
     @pure ConvertUnit{D,U,S}() where {D,U,S} = new{D,normal(U),normal(S)}()
 end
 
-Base.show(io::IO,::ConvertUnit{D,U,S}) where {D,U,S} = print(io, ratio(D,U,S), " : ", unitname(U), " -> ", unitname(S))
+convertdim(::ConvertUnit{D,U,S}) where {D,U,S} = convertdim(D,U,S)
+convertdim(::Dimension{D},U,S) where D = convertdim(D,U,S)
+dimconvert(x::T,d,u,s) where T = (isone(ratio(d,u,s)) ? zero(x) : x)::T
+convertdim(d::Group{T},U,S) where T = Dimension{Group{T,11}(dimconvert.(d.v,usq,Ref(U),Ref(S)))}()
+
+function Base.show(io::IO,::ConvertUnit{D,U,S}) where {D,U,S}
+    d = convertdim(D,U,S)
+    print(io, ratio(D,U,S), " [")
+    showgroup(io,S(d),'𝟙',S)
+    print(io, "]/[")
+    showgroup(io,U(d),'𝟙',U)
+    print(io, "] ", unitname(U), " -> ", unitname(S))
+end
 
 @pure Base.inv(::ConvertUnit{D,U,S}) where {D,U,S} = ConvertUnit{inv(D),U,S}()
 

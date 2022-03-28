@@ -182,7 +182,7 @@ function printnum(io, b, e)
 end
 
 Base.show(io::IO,x::Group) = showgroup(io,x)
-function showgroup(io::IO,x::Group{T,N},c='𝟙',u=Metric) where {T,N}
+function showgroup(io::IO,x::Group{T,N},c='𝟙',u=Natural) where {T,N}
     #back = T<:AbstractFloat && x.v[N]<0
     #!back && printexpo(io, 10, x.v[N])
     printdims(io,x,u)
@@ -296,7 +296,7 @@ Base.:*(x::ExpGroup{X},y::ExpGroup{Y}) where {X,Y} = ExpGroup{X*Y}(x.v+y.v)
 dB(x::AbelianGroup) = log(exp10(0.1),x)
 
 Base.one(::AbelianGroup) = Group(zeros(Values{dims,Int}))
-Base.isone(x::Group) = iszero(sum(x.v))
+Base.isone(x::Group) = iszero(norm(x.v)) && isone(x.c)
 Base.isone(x::AbelianGroup) = false
 Base.zero(x::AbelianGroup) = log(one(x))
 Base.iszero(x::AbelianGroup) = false
