@@ -1,7 +1,7 @@
 name = "Similitude"
 uuid = "d70e672a-ff44-4dfc-8031-4cc812d84922"
 authors = ["Michael Reed"]
-version = "0.2"
+version = "0.2.1"
 
 [deps]
 UnitSystems = "3a241a3c-2137-41aa-af5e-1388e404ca09"
@@ -10,7 +10,7 @@ LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 
 [compat]
 AbstractTensors = "0.7"
-UnitSystems = "0.3.2"
+UnitSystems = "0.3.3"
 julia = "1"
 
 [extras]

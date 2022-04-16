@@ -25,7 +25,8 @@ end
 
 value(::Dimension{D}) where D = value(D)
 
-showgroup(io::IO,x::Dimension{D},c,u) where D = showgroup(io,D,'𝟙',u)
+showgroup(io::IO,x::Dimension{D},u) where D = showgroup(io,D,u,'𝟙')
+showgroup(io::IO,x,u,c) = showgroup(io,x,u)
 
 Base.show(io::IO,x::Dimension{D}) where D  = show(io,D)
 
@@ -96,40 +97,40 @@ end
     Group(zeros(Values{N,Int}),x)*B^b*C^c*D^d*E^e
 end
 
-const basis = Values("kB", "𝘩", "𝘤", "𝘦", "mP", "NA", "Kcd", "ΔνCs", "R∞", "α", "μₑᵤ", "μₚᵤ", "ΩΛ", "H0", "g₀", "aⱼ", "au", "ft", "ftUS", "lb", "Tₛ", "atm", "inHg", "RK90", "KJ90", "RK", "KJ", "Rᵤ2014", "Ωᵢₜ", "Vᵢₜ", "k", "GME", "GMJ", "φ", "ℯ", "γ", "τ", "2", "3", "5", "7", "11", "19","43")
+const basis = Values("kB", "NA", "𝘩", "𝘤", "𝘦", "Kcd", "ΔνCs", "R∞", "α", "μₑᵤ", "μₚᵤ", "ΩΛ", "H0", "g₀", "aⱼ", "au", "ft", "ftUS", "lb", "T₀", "atm", "inHg", "RK90", "KJ90", "RK", "KJ", "Rᵤ2014", "Ωᵢₜ", "Vᵢₜ", "kG", "mP", "GME", "GMJ", "φ", "ℯ", "γ", "τ", "2", "3", "5", "7", "11", "19","43")
 const vals = length(basis)
 @pure function constant(d::Group,C::Coupling=UnitSystems.Universe); cs = 
     UnitSystems.kB^makeint(d.v[1])*
-    UnitSystems.𝘩^makeint(d.v[2])*
-    UnitSystems.𝘤^makeint(d.v[3])*
-    UnitSystems.𝘦^makeint(d.v[4])*
-    UnitSystems.mP^makeint(d.v[5])*
-    UnitSystems.NA^makeint(d.v[6])*
-    UnitSystems.Kcd^makeint(d.v[7])*
-    UnitSystems.ΔνCs^makeint(d.v[8])*
-    UnitSystems.R∞^makeint(d.v[9])*
-    inv(UnitSystems.αinv)^makeint(d.v[10])*
-    UnitSystems.μₑᵤ^makeint(d.v[11])*
-    UnitSystems.μₚᵤ^makeint(d.v[12])*
-    UnitSystems.ΩΛ^makeint(d.v[13])*
-    UnitSystems.H0^makeint(d.v[14])*
-    UnitSystems.g₀^makeint(d.v[15])*
-    UnitSystems.aⱼ^makeint(d.v[16])*
-    UnitSystems.au^makeint(d.v[17])*
-    UnitSystems.ft^makeint(d.v[18])*
-    UnitSystems.ftUS^makeint(d.v[19])*
-    UnitSystems.lb^makeint(d.v[20])*
-    UnitSystems.Tₛ^makeint(d.v[21])*
-    UnitSystems.atm^makeint(d.v[22])*
-    UnitSystems.inHg^makeint(d.v[23])*
-    UnitSystems.RK1990^makeint(d.v[24])*
-    UnitSystems.KJ1990^makeint(d.v[25])*
-    UnitSystems.RK2014^makeint(d.v[26])*
-    UnitSystems.KJ2014^makeint(d.v[27])*
-    UnitSystems.Rᵤ2014^makeint(d.v[28])*
-    UnitSystems.Ωᵢₜ^makeint(d.v[29])*
-    UnitSystems.Vᵢₜ^makeint(d.v[30])*
-    UnitSystems.k^makeint(d.v[31])*
+    UnitSystems.NA^makeint(d.v[2])*
+    UnitSystems.𝘩^makeint(d.v[3])*
+    UnitSystems.𝘤^makeint(d.v[4])*
+    UnitSystems.𝘦^makeint(d.v[5])*
+    UnitSystems.Kcd^makeint(d.v[6])*
+    UnitSystems.ΔνCs^makeint(d.v[7])*
+    UnitSystems.R∞^makeint(d.v[8])*
+    inv(UnitSystems.αinv)^makeint(d.v[9])*
+    UnitSystems.μₑᵤ^makeint(d.v[10])*
+    UnitSystems.μₚᵤ^makeint(d.v[11])*
+    UnitSystems.ΩΛ^makeint(d.v[12])*
+    UnitSystems.H0^makeint(d.v[13])*
+    UnitSystems.g₀^makeint(d.v[14])*
+    UnitSystems.aⱼ^makeint(d.v[15])*
+    UnitSystems.au^makeint(d.v[16])*
+    UnitSystems.ft^makeint(d.v[17])*
+    UnitSystems.ftUS^makeint(d.v[18])*
+    UnitSystems.lb^makeint(d.v[19])*
+    UnitSystems.T₀^makeint(d.v[20])*
+    UnitSystems.atm^makeint(d.v[21])*
+    UnitSystems.inHg^makeint(d.v[22])*
+    UnitSystems.RK1990^makeint(d.v[23])*
+    UnitSystems.KJ1990^makeint(d.v[24])*
+    UnitSystems.RK2014^makeint(d.v[25])*
+    UnitSystems.KJ2014^makeint(d.v[26])*
+    UnitSystems.Rᵤ2014^makeint(d.v[27])*
+    UnitSystems.Ωᵢₜ^makeint(d.v[28])*
+    UnitSystems.Vᵢₜ^makeint(d.v[29])*
+    UnitSystems.kG^makeint(d.v[30])*
+    UnitSystems.mP^makeint(d.v[31])*
     UnitSystems.GME^makeint(d.v[32])*
     UnitSystems.GMJ^makeint(d.v[33])*
     Base.MathConstants.φ^makeint(d.v[34])*
@@ -160,9 +161,9 @@ convertdim(d::Group{T},U,S) where T = Dimension{Group{T,11}(dimconvert.(d.v,usq,
 function Base.show(io::IO,::ConvertUnit{D,U,S}) where {D,U,S}
     d = convertdim(D,U,S)
     print(io, ratio(D,U,S), " [")
-    showgroup(io,S(d),'𝟙',S)
+    showgroup(io,S(d),S)
     print(io, "]/[")
-    showgroup(io,U(d),'𝟙',U)
+    showgroup(io,U(d),U)
     print(io, "] ", unitname(U), " -> ", unitname(S))
 end
 
@@ -217,12 +218,13 @@ quantity(q::Quantity) = q.v
 @pure quantity(q::Quantity{D,U,Int} where {D,U}) = q.v
 @pure quantity(q::Quantity{D,U,Float64} where {D,U}) = q.v
 @pure dimensions(::Quantity{D}) where D = D
+@pure Dimension(::Quantity{D}) where D = D
 @pure unitsystem(::Quantity{D,U}) where {D,U} = dimension(U)
 @pure unitsystem2(::Quantity{D,U}) where {D,U} = U
 
 function Base.show(io::IO,x::Quantity{D,U}) where {D,U}
     print(io, x.v, " [")
-    showgroup(io,U(D),'𝟙',U)
+    showgroup(io,U(D),U)
     print(io, "] ", unitname(U))
 end
 

@@ -23,7 +23,7 @@ include("$dir/constant.jl")
 @pure Constant(D::AbelianGroup) = Constant{D}()
 
 #printone(io::IO,::Val{vals}) = print(io, '𝟏')
-Base.show(io::IO,x::Constant{D}) where D  = (showgroup(io,D,'𝟏'); print(io, " = ", constant(D)))
+Base.show(io::IO,x::Constant{D}) where D  = (showgroup(io,D,Natural,'𝟏'); print(io, " = ", constant(D)))
 
 @pure constant(::Constant{D}) where D = constant(D)
 constant(d::LogGroup{B},C=UnitSystems.Universe) where B = log(B,constant(value(d),C))
@@ -54,7 +54,7 @@ for i ∈ 1:vals-10
     end
 end
 
-export factorize, °R, τ, 𝟏𝟎, 𝟐, 𝟑, 𝟓, nm, 𝟏, mₑ, μ₀, Mᵤ, Rᵤ, αG, GG, slug, slugUS, ħ, μₚₑ, αL, 𝟕, 𝟏𝟏, 𝟏𝟗, 𝟒𝟑
+export factorize
 
 const τ = Constant(valueat(37,vals))
 const 𝟏 = Constant(valueat(0,vals))
@@ -66,6 +66,7 @@ const 𝟏𝟏 = Constant(valueat(42,vals))
 const 𝟏𝟗 = Constant(valueat(43,vals))
 const 𝟒𝟑 = Constant(valueat(44,vals))
 const 𝟏𝟎 = 𝟐*𝟓
+const zetta,yotta,yocto = (𝟐*𝟓)^7, (𝟐*𝟓)^8, (𝟐*𝟓)^-24
 const αinv = inv(α)
 const RK1990,KJ1990 = RK90,KJ90
 const RK2014,KJ2014 = RK,KJ

@@ -19,7 +19,18 @@ abstract type AbelianGroup <: AbstractModule end
 struct Group{T,N,S} <: AbelianGroup
     v::Values{N,T}
     c::S
-    @pure Group{T,N,S}(v,c) where {N,T,S} = new{T,N,S}(v,UnitSystems.cache(c))
+    @pure function Group{T,N,S}(v,c) where {N,T,S}
+        r = promoteint(UnitSystems.cache(c))
+        new{T,N,typeof(r)}(v,r)
+    end
+    @pure function Group{T,N,S}(v,c) where {N,T<:Rational,S}
+        r,p = promoteints(v),promoteint(UnitSystems.cache(c))
+        new{eltype(r),N,typeof(p)}(r,p)
+    end
+    @pure function Group{T,N,S}(v::Values{T,N},c) where {N,T<:Rational,S}
+        r,p = promoteints(v),promoteint(UnitSystems.cache(c))
+        new{eltype(r),N,typeof(p)}(r,p)
+    end
 end
 
 @pure Group{T,N}(v,c::S=1) where {T,N,S} = Group{T,N,S}(v,c)
@@ -27,7 +38,7 @@ end
 @pure Group(v::Values{N,T},c::S=1) where {N,T,S} = Group{T,N,S}(v,c)
 
 @pure function Group(v::Values{N,<:Rational},c::S=1) where {N,S}
-    r = promoteint(v)
+    r = promoteints(v)
     Group{eltype(r),N,S}(r,c)
 end
 
@@ -38,11 +49,16 @@ coef(g::Group) = UnitSystems.measure(g.c)
 Base.:(==)(a::Group,b::Group) = a.v == b.v && a.c == b.c
 
 @pure isonezero(x) = isone(x) || iszero(x)
-@pure checkint(v::Values{N} where N) = prod(isonezero.(v.v))
-@pure checkint(v::Values{N,<:Rational} where N) = prod(isone.(denominator.(v.v)))
-@pure checkint(v::Values{N,<:Integer} where N) = v
-@pure promoteint(v::Values{N,<:Integer} where N) = v
-@pure promoteint(v) = checkint(v) ? Int.(v) : v
+@pure checkint(v::T) where T<:Integer = v
+@pure checkint(v::T) where T<:Rational = isone(denominator(v))
+@pure checkint(v) = isonezero(v)
+@pure checkints(v::Values{N} where N) = prod(isonezero.(v.v))
+@pure checkints(v::Values{N,<:Rational} where N) = prod(isone.(denominator.(v.v)))
+@pure checkints(v::Values{N,<:Integer} where N) = v
+@pure promoteint(v::T) where T<:Integer = v
+@pure promoteint(v) = checkint(v) ? Int(v) : v
+@pure promoteints(v::Values{N,<:Integer} where N) = v
+@pure promoteints(v) = checkints(v) ? Int.(v) : v
 
 const expos = Values('⁰','¹','²','³','⁴','⁵','⁶','⁷','⁸','⁹')
 const chars = Dict([[string(i-1)[1]=>expos[i] for i ∈ 1:length(expos)];['.'=>'⋅','-'=>'⁻','e'=>'ᵉ','v'=>'ᵛ','₀'=>'⁰','₁'=>'¹','₂'=>'²','₃'=>'³','₄'=>'⁴','₅'=>'⁵','₆'=>'⁶','₇'=>'⁷','₈'=>'⁸','₉'=>'⁹','*'=>'*']])
@@ -182,7 +198,7 @@ function printnum(io, b, e)
 end
 
 Base.show(io::IO,x::Group) = showgroup(io,x)
-function showgroup(io::IO,x::Group{T,N},c='𝟙',u=Natural) where {T,N}
+function showgroup(io::IO,x::Group{T,N},u=Natural,c='𝟙') where {T,N}
     #back = T<:AbstractFloat && x.v[N]<0
     #!back && printexpo(io, 10, x.v[N])
     printdims(io,x,u)
@@ -200,9 +216,9 @@ function showgroup(io::IO,x::Group{T,N},c='𝟙',u=Natural) where {T,N}
     end
 end
 
-function showgroup(io::IO, x::AbelianGroup, c='𝟙',u=Metric)
+function showgroup(io::IO, x::AbelianGroup, u=Metric, c='𝟙')
     showfun(io,x)
-    showgroup(io,dimensions(x),c,u)
+    showgroup(io,dimensions(x),u,c)
     print(io,')')
 end
 
@@ -293,7 +309,7 @@ Base.:*(x::ExpGroup{X},y::ExpGroup{Y}) where {X,Y} = ExpGroup{X*Y}(x.v+y.v)
 
 # other
 
-dB(x::AbelianGroup) = log(exp10(0.1),x)
+logdb(x::AbelianGroup) = log(exp10(0.1),x)
 
 Base.one(::AbelianGroup) = Group(zeros(Values{dims,Int}))
 Base.isone(x::Group) = iszero(norm(x.v)) && isone(x.c)

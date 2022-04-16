@@ -21,7 +21,7 @@ module Similitude
 
 import Base: @pure
 import UnitSystems
-import UnitSystems: UnitSystem, universe, Coupling, dB, Db
+import UnitSystems: UnitSystem, universe, Coupling, logdb, expdb, dB
 import UnitSystems: Systems, Dimensionless, Constants, Physics, Convert, Derived
 const dir = dirname(pathof(UnitSystems))
 
@@ -38,8 +38,8 @@ printdims(io::IO,x::Group{T,vals},u::UnitSystem) where T = printdims(io,x,basis)
 printdims(io::IO,x::Group{T,dims}) where T = printdims(io,x,isq)
 printdims(io::IO,x::Group{T,vals}) where T = printdims(io,x,basis)
 
-dB(x::Dimension{D}) where D = Dimension{dB(D)}()
-dB(x::Quantity{D,U}) where {D,U} = Quantity{dB(D),U}(dB(x.v))
+logdb(x::Dimension{D}) where D = Dimension{logdb(D)}()
+logdb(x::Quantity{D,U}) where {D,U} = Quantity{logdb(D),U}(logdb(x.v))
 
 @pure UnitSystems.unit(x::Dimension,y=1) = x
 @pure UnitSystems.unit(x::AbelianGroup,y=1) = x
@@ -105,6 +105,7 @@ end
 
 const LD = Constant(UnitSystems.LD)
 const μE☾ = Constant(UnitSystems.μE☾)
+const zetta,yotta,yocto = (𝟐*𝟓)^7, (𝟐*𝟓)^8, (𝟐*𝟓)^-24
 
 import UnitSystems: GaussSystem, EntropySystem, ElectricSystem, AstronomicalSystem
 include("$dir/initdata.jl")
@@ -112,14 +113,18 @@ include("$dir/initdata.jl")
 (u::UnitSystem)(d::Group) = normal(Metric)(d)
 
 for unit ∈ Convert
-    if unit ∉ (:length,:time,:angle,:molarmass,:luminousefficacy,:angularfrequency,:angularwavenumber,:angularmomentum,:solidangle)
+    if unit ∉ (:length,:time,:angle,:molarmass,:luminousintensity,:luminance,:luminousefficacy,:angularfrequency,:angularwavenumber,:angularmomentum,:solidangle,:magneticdipolemoment)
         @eval const  $unit = dimensions(UnitSystems.$unit(UnitSystems.Natural,Natural))
     end
 end
+const gravityforce = acceleration/specificforce
 const solidangle = A*A
 const angularfrequency = A/T
 const angularwavenumber = A/L
 const angularmomentum = F*L*T*A
+const magneticdipolemoment = F/M*L*T*Q/A/C
+const luminousintensity = luminousflux/solidangle
+const luminance = luminousintensity/area
 
 include("derived.jl")
 
