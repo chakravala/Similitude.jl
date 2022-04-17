@@ -387,6 +387,7 @@ end
 #(u::typeof(normal(Thomson)))(d::Group) = normal(EMU)(d)
 #(u::typeof(normal(Kennelly)))(d::Group) = normal(EMU)(d)
 (u::typeof(normal(Schrodinger)))(d::Group) = normal(Rydberg)(d)
+(u::typeof(normal(QCD)))(d::Group) = normal(Planck)(d)
 (u::typeof(normal(QCDGauss)))(d::Group) = normal(PlanckGauss)(d)
 (u::typeof(normal(Cosmological)))(d::Group) = normal(Hubble)(d)
 
