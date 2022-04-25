@@ -105,7 +105,6 @@ end
 
 const LD = Constant(UnitSystems.LD)
 const μE☾ = Constant(UnitSystems.μE☾)
-const zetta,yotta,yocto = (𝟐*𝟓)^7, (𝟐*𝟓)^8, (𝟐*𝟓)^-24
 
 import UnitSystems: GaussSystem, EntropySystem, ElectricSystem, AstronomicalSystem
 include("$dir/initdata.jl")
@@ -125,6 +124,34 @@ const angularmomentum = F*L*T*A
 const magneticdipolemoment = F/M*L*T*Q/A/C
 const luminousintensity = luminousflux/solidangle
 const luminance = luminousintensity/area
+
+@doc """
+    (D::Dimension)(U::UnitSystem,S::UnitSystem) = ConvertUnit{D,U,S}()
+
+Constant for unit conversion for `D::Dimension` from `U::UnitSystem` to `S::UnitSystem`.
+```Julia
+julia> energy(Metric,CGS)
+$(energy(Metric,CGS))
+
+julia> energy(Metric,English)
+$(energy(Metric,English))
+```
+There still exists further opportunity to expand on the implementation of `ConvertUnit`.
+""" ConvertUnit
+
+@doc """
+    (U::UnitSystem)(v::Number, D::Dimension) = Quantity{D,U}(v)
+
+Numerical `Quantity` having value `v` with `D::Dimension` specified in `U::UnitSystem`.
+```Julia
+julia> Metric(1,energy)
+$(Metric(1,energy))
+
+julia> English(1,energy)
+$(English(1,energy))
+```
+There still exists further opportunity to expand on the implementation of `Quantity`.
+""" Quantity
 
 include("derived.jl")
 

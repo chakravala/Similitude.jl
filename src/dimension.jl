@@ -14,6 +14,15 @@
 
 # dimension
 
+"""
+    Dimension{D} <: AbstractModule
+
+Physical `Dimension` represented by `Group` element `D`.
+```Julia
+F, M, L, T, Q, Θ, N, J, A, Λ, C
+```
+Derived `Dimension` can be obtained from multiplicative base.
+"""
 struct Dimension{D} <: AbstractModule
     @pure Dimension{D}() where D = new{D}()
 end
@@ -171,10 +180,8 @@ end
 
 (D::Dimension)(U::UnitSystem,S::UnitSystem) = ConvertUnit{D,U,S}()
 (D::Dimension)(U::UnitSystem) = U(ratio(D,Natural,U),D)
-(D::Dimension)(v::Real,U::UnitSystem,S::UnitSystem) = v/ratio(D,U,S)
-(D::Dimension)(v::Real,U::UnitSystem) = v/ratio(D,U,Metric)
-#(D::Dimension)(v::Number,U::UnitSystem,S::UnitSystem) = v/ratio(D,U,S)
-#(D::Dimension)(v::Number,U::UnitSystem) = v/ratio(D,Natural,U)
+(D::Dimension)(v::Real,U::UnitSystem,S::UnitSystem=Metric) = v/ratio(D,U,S) #U(_,D)
+#(D::Dimension)(v::Number,U::UnitSystem,S::UnitSystem=Natural) = U(v/ratio(D,U,S),D)
 
 Base.log(x::ConvertUnit{D,U,S}) where {D,U,S} = ConvertUnit{log(D),U,S}()
 Base.log2(x::ConvertUnit{D,U,S}) where {D,U,S} = ConvertUnit{log2(D),U,S}()
