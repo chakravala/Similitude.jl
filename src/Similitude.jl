@@ -103,7 +103,7 @@ function Quantity(u::UnitSystem)
     UnitSystem(kB,ħ,c,μ0,mₑ,Mᵤ,Kcd,a,λ,αL,g₀,Universe,τ,x,y,z,u,v,w,q)
 end
 
-const LD = Constant(UnitSystems.LD)
+const LD,JD = Constant(384399)*𝟏𝟎^3,Constant(778479)*𝟏𝟎^6
 const μE☾ = Constant(UnitSystems.μE☾)
 
 import UnitSystems: GaussSystem, EntropySystem, ElectricSystem, AstronomicalSystem

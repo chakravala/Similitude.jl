@@ -12,7 +12,7 @@
 #   https://github.com/chakravala
 #   https://crucialflow.com
 
-export AbelianGroup, Dimension, 𝟙
+export AbelianGroup, Dimension, 𝟙, normal
 export UnitSystems, Quantity, Group, LogGroup, ExpGroup
 export universe, Universe, unitname, normal, logdb, expdb, dB
 
@@ -26,7 +26,7 @@ for unit ∈ Dimensionless
 end
 
 for u ∈ (Constants...,Physics...)
-    u≠:permeability && @eval const $u = UnitSystems.$u(SI)
+    u∉(:permeability,:gaussgravitation) && @eval const $u = UnitSystems.$u(SI)
 end
 
 const hyperfine = SI2019(ΔνCs,inv(T))
@@ -36,8 +36,6 @@ const solarmass = IAU(𝟏,M)
 const earthmass = Metric(GME/G,M)(IAU)
 const jupitermass = Metric(GMJ/G,M)(IAU)
 const lunarmass = earthmass/μE☾
-const gaussianyear = IAU(τ/k,T)
-const siderealyear = IAU(τ/k/√(solarmass+earthmass+lunarmass).v,T)
 const gforce = English(𝟏,specificforce)
 const atmosphere = Metric(atm,pressure)
 const loschmidt = atmosphere(SI2019)/SI2019(T₀,Θ)/boltzmann(SI2019)
@@ -74,7 +72,8 @@ const nauticalmile = Nautical(𝟏,L)
 const admiraltymile = English(𝟐^6*𝟓*𝟏𝟗,L)
 const meridianmile = Metric(𝟐^4*𝟓^5/𝟑^3,L)
 const astronomicalunit = IAU(𝟏,L)
-const lunardistance = Metric(LD,L)
+const lunardistance = IAUE(𝟏,L)(IAU)
+const jupiterdistance = IAUJ(𝟏,L)(IAU)
 const parsec = astronomicalunit*(𝟐^7*𝟑^4*𝟓^3/τ)
 
 #time
@@ -86,6 +85,13 @@ const day = IAU(𝟏,T)
 const year = IAU(aⱼ,T)
 const lightyear = year*lightspeed(IAU)
 const radarmile = 𝟐*nauticalmile(Metric)/lightspeed(Metric)
+const gaussgravitation = sqrt(normal(gravitation(IAU)))*radian(IAU)/day(IAU)
+const gaussianyear = turn(IAU)/gaussgravitation
+const siderealyear = gaussianyear/√(solarmass+earthmass+lunarmass).v
+const gaussianmonth = τ/sqrt(normal(gravitation(IAUE)))*day
+const siderealmonth = gaussianmonth/normal(sqrt(earthmass(IAUE)+lunarmass(IAUE)))
+const synodicmonth = inv(inv(siderealmonth(IAU))-inv(siderealyear(IAU)))
+const jovianyear = τ*sqrt(normal(jupiterdistance^3/solarmass/gravitation(IAU)))*day/normal(sqrt(solarmass+jupitermass))
 
 # area
 
@@ -107,6 +113,18 @@ const fluidounce = cup/𝟐^3
 const teaspoon = 𝟓*milli*liter
 const tablespoon = 𝟑*teaspoon
 #const oilbarrel = 𝟐*𝟑*𝟕*gallon
+
+# speed
+
+const bubnoff = meter(Metric)/year(Metric)
+const ips = IPS(𝟏,speed)
+const fps = British(𝟏,speed)
+const fpm = foot(British)/minute(British)
+const ms = Metric(𝟏,speed)
+const kmh = kilo*meter/hour
+const mph = MPH(𝟏,speed)
+const knot = Nautical(𝟏,speed)
+const mps = mile(MPH)/second(MPH)
 
 # mass
 
@@ -235,7 +253,8 @@ const bril = centi*nano*lambert
 @pure bel(U::UnitSystem) = U(𝟏,log10(𝟙))
 @pure decibel(U::UnitSystem) = U(𝟏,dB(𝟙))
 const hertz = inv(second(Metric))
-const rpm = inv(minute(Metric))
+const apm = inv(minute(Metric))
+const rpm = turn(Metric)/minute(Metric)
 #const rpd = turn(Metric)/day(Metric)
 const galileo = Gauss(𝟏,specificforce)
 const eotvos = Gauss(nano,specificforce/L)
@@ -251,7 +270,6 @@ const curie = Constant(37)*giga*hertz
 const sievert = Metric(𝟏,energy/M)
 #const rem = centi*sievert
 const roentgen = ESU(𝟏,chargedensity)(Metric)/Metric(Constant(1.293),density)
-const bubnoff = meter(Metric)/year(Metric)
 const rayl = Metric(𝟏,specificimpedance)
 const langley = calorie(Metric)/(centi*meter(Metric))^2
 const jansky = Metric((𝟐*𝟓)^-26,fluence)
@@ -289,6 +307,7 @@ $unit(v::Real,U::UnitSystem,S::UnitSystem) = v/$unit(U,S)
 """
 
 @pure unitsym(x) = :nonstandard
+@pure unitsym(::typeof(𝟙)) = :dimensionless
 @pure unitsym(::typeof(A)) = :angle
 for unit ∈ Convert
     if unit ∉ (:length,:time,:angle,:molarmass,:luminousefficacy)
@@ -436,8 +455,8 @@ end
 @unitdim FPS "pdl" "lb" "ft" "s" "C" "°R" "lb-mol"
 @unitdim Gauss "gf" "g" "cm" "s" "_" "K" "mol"
 @unitdim IAU☉ "M☉f" "M☉" "au" "D" "C" "K" "mol"
-@unitdim IAUE "MEf" "ME" "au" "D" "C" "K" "mol"
-@unitdim IAUJ "MJf" "MJ" "au" "D" "C" "K" "mol"
+@unitdim IAUE "MEf" "ME" "LD" "D" "C" "K" "mol"
+@unitdim IAUJ "MJf" "MJ" "JD" "D" "C" "K" "mol"
 @unitdim MTS "tf" "t" "m" "s" "C" "K" "mol"
 @unitdim KKH "kgf" "kg" "km" "h" "C" "K" "mol"
 @unitdim MPH "lbf" "lb" "mi" "h" "C" "°R" "lb-mol"

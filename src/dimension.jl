@@ -56,6 +56,7 @@ function Base.:-(a::Dimension{A},b::Dimension{B}) where {A,B}
 end
 
 Base.sqrt(::Dimension{D}) where D = Dimension{sqrt(D)}()
+Base.cbrt(::Dimension{D}) where D = Dimension{cbrt(D)}()
 Base.inv(::Dimension{D}) where D = Dimension{inv(D)}()
 Base.log(x::Dimension{D}) where D = Dimension{log(D)}()
 Base.log2(x::Dimension{D}) where D = Dimension{log2(D)}()
@@ -268,6 +269,7 @@ Base.:/(a::Quantity{D,U},b::ConvertUnit{D,S,U}) where {D,U,S} = a*ConvertUnit{D,
 Base.:-(a::Quantity{D,U}) where {D,U} = Quantity{D,U}(-a.v)
 Base.inv(a::Quantity{D,U}) where {D,U} = Quantity{inv(D),U}(inv(a.v))
 Base.sqrt(a::Quantity{D,U}) where {D,U} = Quantity{sqrt(D),U}(sqrt(a.v))
+Base.cbrt(a::Quantity{D,U}) where {D,U} = Quantity{cbrt(D),U}(cbrt(a.v))
 
 Base.:*(a::Dimension{A},b::Quantity{D,U}) where {D,U,A} = Quantity{a,U}(10^-(isunknown(A) ? A.v.v[end] : A.v[end]))*b
 Base.:*(a::Quantity{D,U},b::Dimension{B}) where {D,U,B} = a*Quantity{b,U}(10^-(isunknown(B) ? B.v.v[end] : B.v[end]))
@@ -364,6 +366,8 @@ function UnitSystem(d::Group{<:Integer})
         d.v[3]+d.v[4]-d.v[6]-2(d.v[1]+d.v[8])))
 end
 
+Quantity(::ConvertUnit{D,U,S}) where {D,U,S} = Quantity{D,S}(ratio(D,U,S))
+(u::UnitSystem)(::ConvertUnit{D,U,S}) where {D,U,S} = Quantity{D,u}(ratio(D,U,S))
 (u::UnitSystem)(a::Number, d::Dimension) = Quantity{d,u}(a)
 (u::UnitSystem)(a::Number, d::AbelianGroup) = Quantity{Dimension(d),u}(a)
 (u::UnitSystem)(::Dimension{D}) where D = Dimension{normal(u)(D)}()

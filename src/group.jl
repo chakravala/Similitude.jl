@@ -325,6 +325,8 @@ Base.:^(a::Group,b::Integer) = Group(b*a.v,coef(a)^b)
 Base.:^(a::Group,b::Rational) = Group(b*a.v,coef(a)^b)
 Base.sqrt(a::Group{T}) where T = Group{T}(a.v/2,sqrt(coef(a)))
 Base.sqrt(a::Group{Int}) = Group{Rational{Int}}(a.v//2,sqrt(coef(a)))
+Base.cbrt(a::Group{T}) where T = Group{T}(a.v/3,cbrt(coef(a)))
+Base.cbrt(a::Group{Int}) = Group{Rational{Int}}(a.v//3,cbrt(coef(a)))
 Base.inv(a::Group{T}) where T = Group{T}(-a.v,inv(coef(a)))
 
 @pure valueat(::Val{j},::Val{k}) where {j,k} = valueat(j,k)
