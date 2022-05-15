@@ -32,6 +32,7 @@ end
 const hyperfine = SI2019(ΔνCs,inv(T))
 const hubble = Hubble(𝟏,inv(T))
 const cosmological = 𝟑*ΩΛ*(hubble/lightspeed(Hubble))^2
+const eddington = Cosmological(𝟏,M)(QCD)
 const solarmass = IAU(𝟏,M)
 const earthmass = Metric(GME/G,M)(IAU)
 const jupitermass = Metric(GMJ/G,M)(IAU)
@@ -49,10 +50,12 @@ const wienfrequency = Constant(2.821439372122078893)*boltzmann(SI)/planck(SI)
 
 const radian = MetricEngineering(𝟏,A)
 const steradian = MetricEngineering(𝟏,solidangle)
-const degree = MetricEngineering(τ/𝟐^3/𝟑^2/𝟓,A)
-const gradian = MetricEngineering(τ/𝟐^4/𝟓^2,A)
-const arcminute = degree/𝟐^2/𝟑/𝟓
-const arcsecond = arcminute/𝟐^2/𝟑/𝟓
+const degree = MetricDegree(𝟏,A)
+const squaredegree = MetricDegree(𝟏,solidangle)
+const gradian = MetricGradian(𝟏,A)
+const bradian = MetricEngineering(τ/𝟐^8,A)
+const arcminute = MetricArcminute(𝟏,A)
+const arcsecond = MetricArcsecond(𝟏,A)
 
 # length
 
@@ -341,6 +344,9 @@ end
 function (u::typeof(normal(Metric)))(d::Group)
     Group(Values(0,d.v[1]+d.v[2],d.v[1]+d.v[3],d.v[4]-2(d.v[1]),d.v[5],d.v[6],d.v[7],d.v[8],0,0,0))
 end
+function (u::typeof(normal(MetricDegree)))(d::Group)
+    Group(Values(0,d.v[1]+d.v[2],d.v[1]+d.v[3],d.v[4]-2(d.v[1]),d.v[5],d.v[6],d.v[7],d.v[8],d.v[9],0,0))
+end
 #=function (u::typeof(normal(Astronomical)))(d::Group)
     Group(Values(d.v[1],0,d.v[3]+3d.v[2],d.v[4]-2d.v[2],d.v[5],d.v[6],d.v[7],d.v[8],d.v[9],0,0))
 end=#
@@ -366,38 +372,41 @@ function (u::typeof(normal(EMU)))(d::Group)
 end
 
 function (u::typeof(normal(Stoney)))(d::Group)
-    Group(Values(0,d.v[1]+d.v[2]+d.v[6],0,d.v[3]+d.v[4]-d.v[1],d.v[5],0,0,0,0,0,0))
+    Group(Values(0,d.v[1]+d.v[2]+d.v[6]+d.v[7],0,d.v[3]+d.v[4]-d.v[1],d.v[5],0,0,d.v[8],0,0,0))
 end
 function (u::typeof(normal(Electronic)))(d::Group)
-    Group(Values(0,0,0,d.v[3]+d.v[4]-d.v[1],d.v[5],0,0,0,0,0,0))
+    Group(Values(0,0,0,d.v[3]+d.v[4]-d.v[1]-d.v[8],d.v[5],0,0,0,0,0,0))
 end
 function (u::typeof(normal(QCDoriginal)))(d::Group)
-    Group(Values(0,d.v[2]+d.v[6]+2(d.v[1])-d.v[3]-d.v[4],0,0,d.v[5],0,0,0,d.v[9],0,0))
-end
-function (u::typeof(normal(PlanckGauss)))(d::Group)
-    Group(Values(0,d.v[2]+d.v[6]+2(d.v[1])-d.v[3]-d.v[4],0,0,0,0,0,0,d.v[9],0,0))
+    Group(Values(0,d.v[2]+d.v[6]+d.v[7]+2(d.v[1]+d.v[8])-d.v[3]-d.v[4],0,0,d.v[5],0,0,0,0,0,0))
 end
 function (u::typeof(normal(Planck)))(d::Group)
-    Group(Values(0,d.v[2]+d.v[5]+d.v[6]+2(d.v[1])-d.v[3]-d.v[4],0,0,0,0,0,0,0,0,0))
+    Group(Values(0,d.v[2]+d.v[6]+d.v[7]+2(d.v[1]+d.v[8])-d.v[3]-d.v[4],0,0,0,0,0,0,0,0,0))
+end
+function (u::typeof(normal(PlanckGauss)))(d::Group)
+    Group(Values(0,d.v[2]+d.v[6]+d.v[7]+2(d.v[1]+d.v[8])-d.v[3]-d.v[4],0,0,d.v[5],0,0,0,0,0,0))
 end
 function (u::typeof(normal(Natural)))(d::Group)
     Group(Values(0,0,0,0,0,0,0,0,0,0,0))
 end
 function (u::typeof(normal(NaturalGauss)))(d::Group)
-    Group(Values(0,0,0,0,0,0,0,0,d.v[9],0,0))
+    Group(Values(0,0,0,0,d.v[5],0,0,0,0,0,0))
 end
 
 function (u::typeof(normal(Rydberg)))(d::Group)
-    Group(Values(0,d.v[2]+d.v[4]+d.v[6]-d.v[1],0,d.v[3]+2(d.v[4]-d.v[6])-3(d.v[1]),d.v[5],0,0,0,0,0,0))
+    Group(Values(0,d.v[1]+d.v[2]+d.v[7],d.v[1]+d.v[3],d.v[4]-d.v[6]+2(d.v[8]-d.v[1]),d.v[5],0,0,0,0,0,0))
 end
 function (u::typeof(normal(Hartree)))(d::Group)
-    Group(Values(0,0,0,d.v[3]+2(d.v[4]-d.v[6])-3(d.v[1]),d.v[5],0,0,0,0,0,0))
+    Group(Values(0,0,d.v[3]+2(d.v[4]-d.v[6])-3(d.v[1])-4(d.v[8]),0,d.v[5],0,0,0,0,0,0))
 end
 function (u::typeof(normal(Hubble)))(d::Group)
-    Group(Values(0,d.v[1]+d.v[2],0,d.v[3]+d.v[4]-d.v[1],d.v[5],d.v[6],d.v[7],d.v[8],0,0,0))
+    Group(Values(0,0,0,d.v[3]+d.v[4]-d.v[1]-d.v[8],d.v[5],0,0,0,0,0,0))
+end
+function (u::typeof(normal(Cosmological)))(d::Group)
+    Group(Values(0,d.v[1]+d.v[2]+d.v[6]+d.v[7],0,d.v[3]+d.v[4]-d.v[1],d.v[5],0,0,d.v[8],0,0,0))
 end
 function (u::typeof(normal(CosmologicalQuantum)))(d::Group)
-    Group(Values(0,d.v[2]+2(d.v[1])-d.v[3]-d.v[4],0,0,d.v[5],d.v[6],d.v[7],d.v[8],0,0,0))
+    Group(Values(0,d.v[2]+d.v[6]+d.v[7]+2(d.v[1]+d.v[8])-d.v[3]-d.v[4],0,0,d.v[5],0,0,0,0,0,0))
 end
 
 export @unitdim, @unitgroup
@@ -411,18 +420,22 @@ macro unitgroup(U,S)
     :((u::typeof(normal($U)))(d::Group) = normal($S)(d))
 end
 
+@unitgroup MetricTurn MetricDegree
+@unitgroup MetricArcminute MetricDegree
+@unitgroup MetricArcsecond MetricDegree
+@unitgroup MetricGradian MetricDegree
 @unitgroup LorentzHeaviside Gauss
 #@unitgroup Thomson EMU
 @unitgroup Kennelly EMU
 @unitgroup Schrodinger Rydberg
 @unitgroup QCD Planck
 @unitgroup QCDGauss PlanckGauss
-@unitgroup Cosmological Hubble
+#@unitgroup Cosmological Hubble
 
-@unitgroup SI2019Engineering MetricEngineering
-@unitgroup MeridianEngineering MetricEngineering
-@unitgroup GravitationalSI2019 GravitationalMetric
-@unitgroup GravitationalMeridian GravitationalMetric
+#@unitgroup SI2019Engineering MetricEngineering
+#@unitgroup MeridianEngineering MetricEngineering
+#@unitgroup GravitationalSI2019 GravitationalMetric
+#@unitgroup GravitationalMeridian GravitationalMetric
 @unitgroup British GravitationalMetric
 @unitgroup English MetricEngineering
 @unitgroup Survey MetricEngineering
@@ -449,6 +462,11 @@ end
 
 @unitdim Metric "kgf" "kg" "m" "s" "C" "K" "mol"
 @unitdim Meridian "kegf" "keg" "em" "s" "eC" "K" "eg-mol"
+@unitdim MetricTurn "kgf" "kg" "m" "s" "C" "K" "mol" "lm" "τ"
+@unitdim MetricDegree "kgf" "kg" "m" "s" "C" "K" "mol" "lm" "deg"
+@unitdim MetricArcminute "kgf" "kg" "m" "s" "C" "K" "mol" "lm" "amin"
+@unitdim MetricArcsecond "kgf" "kg" "m" "s" "C" "K" "mol" "lm" "asec"
+@unitdim MetricGradian "kgf" "kg" "m" "s" "C" "K" "mol" "lm" "gon"
 @unitdim British "lb" "slug" "ft" "s" "C" "°R" "slug-mol"
 @unitdim English "lbf" "lbm" "ft" "s" "C" "°R" "lb-mol"
 @unitdim IPS "lb" "slinch" "in" "s" "C" "°R" "slinch-mol"
@@ -462,6 +480,12 @@ end
 @unitdim MPH "lbf" "lb" "mi" "h" "C" "°R" "lb-mol"
 @unitdim Nautical "kegf" "keg" "nm" "h" "eC" "K" "eg-mol"
 @unitdim FFF "firf" "fir" "fur" "ftn" "Inf" "°R" "fir-mol"
+@unitdim Hartree "F" "M" "a₀" "T" "𝘦" "Θ" "N" "J"
+@unitdim QCDoriginal "F" "mₚ" "L" "T" "𝘦" "Θ" "N" "J"
+@unitdim QCD "F" "mₚ" "L" "T" "Q" "Θ" "N" "J"
+@unitdim QCDGauss "F" "mₚ" "L" "T" "𝘦ₙ" "Θ" "N" "J"
+@unitdim PlanckGauss "F" "mP" "L" "T" "𝘦ₙ" "Θ" "N" "J"
+@unitdim NaturalGauss "F" "T" "L" "T" "𝘦ₙ" "Θ" "N" "J"
 
 """
     @unitdim(U::UnitSystem,S::UnitSystem) -> dimtext(::typeof(normal(U))) = dimtext(normal(S))
@@ -493,10 +517,10 @@ end
 @unitdim InternationalMean Metric
 @unitdim MetricEngineering Metric
 @unitdim GravitationalMetric Metric
-@unitdim SI2019Engineering MetricEngineering
-@unitdim GravitationalSI2019 GravitationalMetric
-@unitdim MeridianEngineering Meridian
-@unitdim GravitationalMeridian Meridian
+#@unitdim SI2019Engineering MetricEngineering
+#@unitdim GravitationalSI2019 GravitationalMetric
+#@unitdim MeridianEngineering Meridian
+#@unitdim GravitationalMeridian Meridian
 @unitdim Survey English
 @unitdim EMU Gauss
 @unitdim ESU Gauss
@@ -526,22 +550,22 @@ macro unitdim(D, U, S)
     :(showgroup(io::IO,::typeof($U($D)),::typeof(normal($U))) = print(io,$S))
 end
 
-for U ∈ (:MetricEngineering, :SI2019Engineering,:GravitationalMetric,:GravitationalSI2019)
+for U ∈ (:MetricEngineering,:GravitationalMetric)#:SI2019Engineering,:GravitationalSI2019)
     @eval begin
         @unitdim frequency $U "Hz"
-        @unitdim frequencydrift $U "Hz*s⁻¹"
+        @unitdim frequencydrift $U "Hz⋅s⁻¹"
         @unitdim illuminance $U "lx"
-        @unitdim luminousexposure $U "lx*s"
+        @unitdim luminousexposure $U "lx⋅s"
         showgroup(io::IO,::typeof(luminance),::typeof(normal($U))) = print(io,"nt")
     end
 end
-for U ∈ (:MetricEngineering,:SI2019Engineering,:MeridianEngineering,:English,:Survey)
+for U ∈ (:MetricEngineering,:English,:Survey)#:SI2019Engineering,:MeridianEngineering)
     @eval @unitdim specificforce $U "g₀"
 end
-for U ∈ (:Metric, :SI2019, :CODATA, :Conventional, :International, :InternationalMean)
+for U ∈ (:Metric, :SI2019, :CODATA, :Conventional, :International, :InternationalMean, :MetricTurn, :MetricDegree, :MetricGradian, :MetricArcminute, :MetricArcsecond)
     @eval begin
         @unitdim frequency $U "Hz"
-        @unitdim frequencydrift $U "Hz*s⁻¹"
+        @unitdim frequencydrift $U "Hz⋅s⁻¹"
         @unitdim force $U "N"
         @unitdim inv(force) $U "N⁻¹"
         @unitdim pressure $U "Pa"
@@ -558,64 +582,90 @@ for U ∈ (:Metric, :SI2019, :CODATA, :Conventional, :International, :Internatio
         @unitdim resistance $U "Ω"
         @unitdim conductance $U "S"
         @unitdim magneticflux $U "Wb"
-        @unitdim inv(magneticflux) $U "Hz*V⁻¹"
+        @unitdim inv(magneticflux) $U "Hz⋅V⁻¹"
         @unitdim magneticfluxdensity $U "T"
         @unitdim inv(magneticfluxdensity) $U "T⁻¹"
         @unitdim permeance $U "H"
         @unitdim reluctance $U "H⁻¹"
 
         @unitdim catalysis $U "kat"
-        @unitdim molarenergy $U "J*mol⁻¹"
-        @unitdim molarentropy $U "J*K⁻¹mol⁻¹"
+        @unitdim molarenergy $U "J⋅mol⁻¹"
+        @unitdim molarentropy $U "J⋅K⁻¹mol⁻¹"
 
-        @unitdim luminousflux/power $U "lm*W⁻¹"
-        @unitdim power/luminousflux $U "W*lm⁻¹"
-        @unitdim luminousintensity $U "cd"
+        @unitdim luminousflux/power $U "lm⋅W⁻¹"
+        @unitdim power/luminousflux $U "W⋅lm⁻¹"
         @unitdim illuminance $U "lx"
-        showgroup(io::IO,::typeof(luminance),::typeof(normal($U))) = print(io,"nt")
-        @unitdim luminousexposure $U "lx*s"
+        @unitdim luminousexposure $U "lx⋅s"
 
-        @unitdim angularmomentum $U "J*s"
-        @unitdim action*speed $U "J*m"
-        @unitdim impulse $U "N*s"
-        @unitdim yank $U "N*s⁻¹"
-        @unitdim fluence $U "N*m⁻¹"
-        @unitdim compliance $U "m*N⁻¹"
+        @unitdim action*speed $U "J⋅m"
+        @unitdim impulse $U "N⋅s"
+        @unitdim yank $U "N⋅s⁻¹"
+        @unitdim fluence $U "N⋅m⁻¹"
+        @unitdim compliance $U "m⋅N⁻¹"
 
-        @unitdim viscosity $U "Pa*s"
-        @unitdim intensity $U "W*m⁻²"
-        @unitdim powerdensity $U "W*m⁻³"
-        @unitdim intensity/Θ^4 $U "W*m⁻²K⁻⁴"
-        @unitdim pressure/Θ^4 $U "J*m⁻³K⁻⁴"
-        @unitdim 𝟙/T/Θ $U "Hz*K⁻¹"
-        @unitdim entropy/Q $U "V*K⁻¹"
-        @unitdim entropy $U "J*K⁻¹"
-        @unitdim specificentropy $U "J*K⁻¹kg⁻¹"
-        @unitdim specificenergy $U "J*kg⁻¹"
-        @unitdim thermalconductivity $U "W*m⁻¹K⁻¹"
-        @unitdim thermalconductance $U "W*K⁻¹"
-        @unitdim thermalresistance $U "K*W⁻¹"
-        @unitdim thermalresistivity $U "K*m*W⁻¹"
-        @unitdim molarconductivity $U "S*m²mol⁻¹"
+        @unitdim viscosity $U "Pa⋅s"
+        @unitdim irradiance $U "W⋅m⁻²"
+        @unitdim powerdensity $U "W⋅m⁻³"
+        @unitdim spectralexposure $U "J⋅m⁻²⋅Hz⁻¹"
+        @unitdim irradiance/Θ^4 $U "W⋅m⁻²K⁻⁴"
+        @unitdim pressure/Θ^4 $U "J⋅m⁻³K⁻⁴"
+        @unitdim 𝟙/T/Θ $U "Hz⋅K⁻¹"
+        @unitdim entropy/Q $U "V⋅K⁻¹"
+        @unitdim entropy $U "J⋅K⁻¹"
+        @unitdim specificentropy $U "J⋅K⁻¹kg⁻¹"
+        @unitdim specificenergy $U "J⋅kg⁻¹"
+        @unitdim thermalconductivity $U "W⋅m⁻¹K⁻¹"
+        @unitdim thermalconductance $U "W⋅K⁻¹"
+        @unitdim thermalresistance $U "K⋅W⁻¹"
+        @unitdim thermalresistivity $U "K⋅m⋅W⁻¹"
+        @unitdim molarconductivity $U "S⋅m²mol⁻¹"
 
-        @unitdim electricpotential/M $U "V*kg⁻¹"
-        @unitdim electricpotential*L $U "V*m"
-        @unitdim electricfield $U "V*m⁻¹"
-        @unitdim permittivity $U "F*m⁻¹"
-        @unitdim inv(permittivity) $U "m*F⁻¹"
-        @unitdim permeability $U "H*m⁻¹"
-        @unitdim inv(permeability) $U "m*H⁻¹"
-        @unitdim resistivity $U "Ω*m"
-        @unitdim conductivity $U "S*m⁻¹"
-        @unitdim magneticdipolemoment $U "J*T⁻¹"
-        @unitdim vectorpotential $U "Wb*m⁻¹"
-        @unitdim magneticmoment $U "Wb*m"
+        @unitdim electricpotential/M $U "V⋅kg⁻¹"
+        @unitdim electricpotential*L $U "V⋅m"
+        @unitdim electricfield $U "V⋅m⁻¹"
+        @unitdim permittivity $U "F⋅m⁻¹"
+        @unitdim inv(permittivity) $U "m⋅F⁻¹"
+        @unitdim permeability $U "H⋅m⁻¹"
+        @unitdim inv(permeability) $U "m⋅H⁻¹"
+        @unitdim resistivity $U "Ω⋅m"
+        @unitdim conductivity $U "S⋅m⁻¹"
+        @unitdim vectorpotential $U "Wb⋅m⁻¹"
+        @unitdim magneticmoment $U "Wb⋅m"
         @unitdim mobility $U "m²s⁻¹V⁻¹"
     end
 end
+for U ∈ (:Metric, :SI2019, :CODATA, :Conventional, :International, :InternationalMean)
+    @eval begin
+        @unitdim luminousintensity $U "cd"
+        showgroup(io::IO,::typeof(luminance),::typeof(normal($U))) = print(io,"nt")
+        @unitdim angularmomentum $U "J⋅s"
+        @unitdim magneticdipolemoment $U "J⋅T⁻¹"
+    end
+end
+
+@unitdim angularmomentum MetricTurn "J⋅s⋅τ"
+@unitdim magneticdipolemoment MetricTurn "J⋅T⁻¹⋅τ⁻¹"
+@unitdim radiance MetricTurn "W⋅m⁻²⋅τ⁻²"
+@unitdim radiantintensity MetricTurn "W⋅τ⁻²"
+@unitdim angularmomentum MetricDegree "J⋅s⋅deg"
+@unitdim magneticdipolemoment MetricDegree "J⋅T⁻¹⋅deg⁻¹"
+@unitdim radiance MetricDegree "W⋅m⁻²⋅deg⁻²"
+@unitdim radiantintensity MetricDegree "W⋅deg⁻²"
+@unitdim angularmomentum MetricGradian "J⋅s⋅gon"
+@unitdim magneticdipolemoment MetricGradian "J⋅T⁻¹⋅gon⁻¹"
+@unitdim radiance MetricGradian "W⋅m⁻²⋅gon⁻²"
+@unitdim radiantintensity MetricGradian "W⋅gon⁻²"
+@unitdim angularmomentum MetricArcminute "J⋅s⋅amin"
+@unitdim magneticdipolemoment MetricArcminute "J⋅T⁻¹⋅amin⁻¹"
+@unitdim radiance MetricArcminute "W⋅m⁻²⋅amin⁻²"
+@unitdim radiantintensity MetricArcminute "W⋅amin⁻²"
+@unitdim angularmomentum MetricArcsecond "J⋅s⋅asec"
+@unitdim magneticdipolemoment MetricArcsecond "J⋅T⁻¹⋅asec⁻¹"
+@unitdim radiance MetricArcsecond "W⋅m⁻²⋅asec⁻²"
+@unitdim radiantintensity MetricArcsecond "W⋅asec⁻²"
 
 @unitdim frequency  Meridian "Hz"
-@unitdim frequencydrift Meridian "Hz*s⁻¹"
+@unitdim frequencydrift Meridian "Hz⋅s⁻¹"
 @unitdim force Meridian "eN"
 @unitdim inv(force) Meridian "eN⁻¹"
 @unitdim pressure Meridian "ePa"
@@ -632,56 +682,57 @@ end
 @unitdim resistance Meridian "eΩ"
 @unitdim conductance Meridian "eS"
 @unitdim magneticflux Meridian "eWb"
-@unitdim inv(magneticflux) Meridian "Hz*eV⁻¹"
+@unitdim inv(magneticflux) Meridian "Hz⋅eV⁻¹"
 @unitdim magneticfluxdensity Meridian "eT"
 @unitdim inv(magneticfluxdensity) Meridian "eT⁻¹"
 @unitdim permeance Meridian "eH"
 @unitdim reluctance Meridian "eH⁻¹"
 
 @unitdim catalysis Meridian "ekat"
-@unitdim molarenergy Meridian "eJ*eg-mol⁻¹"
-@unitdim molarentropy Meridian "eJ*K⁻¹eg-mol⁻¹"
+@unitdim molarenergy Meridian "eJ⋅eg-mol⁻¹"
+@unitdim molarentropy Meridian "eJ⋅K⁻¹eg-mol⁻¹"
 
-@unitdim luminousflux/power Meridian "lm*eW⁻¹"
+@unitdim luminousflux/power Meridian "lm⋅eW⁻¹"
 @unitdim luminousintensity Meridian "cd"
 @unitdim illuminance Meridian "elx"
-@unitdim luminousexposure Meridian "lx*s"
+@unitdim luminousexposure Meridian "lx⋅s"
 showgroup(io::IO,::typeof(luminance),::typeof(normal(Meridian))) = print(io,"ent")
 
-@unitdim impulse Meridian "eN*s"
-@unitdim angularmomentum Meridian "eJ*s"
-@unitdim action*speed Meridian "eJ*em"
-@unitdim yank Meridian "eN*s⁻¹"
-@unitdim fluence Meridian "eN*em⁻¹"
-@unitdim compliance Meridian "em*eN⁻¹"
+@unitdim impulse Meridian "eN⋅s"
+@unitdim angularmomentum Meridian "eJ⋅s"
+@unitdim action*speed Meridian "eJ⋅em"
+@unitdim yank Meridian "eN⋅s⁻¹"
+@unitdim fluence Meridian "eN⋅em⁻¹"
+@unitdim compliance Meridian "em⋅eN⁻¹"
 
-@unitdim viscosity Meridian "ePa*s"
-@unitdim intensity Meridian "eW*em⁻²"
-@unitdim powerdensity Meridian "eW*m⁻³"
-@unitdim intensity/Θ^4 Meridian "eW*em⁻²K⁻⁴"
-@unitdim pressure/Θ^4 Meridian "eJ*em⁻³K⁻⁴"
-@unitdim 𝟙/T/Θ Meridian "Hz*K⁻¹"
-@unitdim entropy/Q Meridian "eV*K⁻¹"
-@unitdim entropy Meridian "eJ*K⁻¹"
-@unitdim specificentropy Meridian "eJ*K⁻¹keg⁻¹"
-@unitdim specificenergy Meridian "eJ*keg⁻¹"
-@unitdim thermalconductivity Meridian "eW*em⁻¹K⁻¹"
-@unitdim thermalresistance Meridian "K*eW⁻¹"
-@unitdim thermalresistivity Meridian "K*em*eW⁻¹"
-@unitdim molarconductivity Meridian "eS*em²eg-mol⁻¹"
+@unitdim viscosity Meridian "ePa⋅s"
+@unitdim irradiance Meridian "eW⋅em⁻²"
+@unitdim powerdensity Meridian "eW⋅m⁻³"
+@unitdim spectralexposure Meridian "eJ⋅em⁻²⋅Hz⁻¹"
+@unitdim irradiance/Θ^4 Meridian "eW⋅em⁻²K⁻⁴"
+@unitdim pressure/Θ^4 Meridian "eJ⋅em⁻³K⁻⁴"
+@unitdim 𝟙/T/Θ Meridian "Hz⋅K⁻¹"
+@unitdim entropy/Q Meridian "eV⋅K⁻¹"
+@unitdim entropy Meridian "eJ⋅K⁻¹"
+@unitdim specificentropy Meridian "eJ⋅K⁻¹keg⁻¹"
+@unitdim specificenergy Meridian "eJ⋅keg⁻¹"
+@unitdim thermalconductivity Meridian "eW⋅em⁻¹K⁻¹"
+@unitdim thermalresistance Meridian "K⋅eW⁻¹"
+@unitdim thermalresistivity Meridian "K⋅em⋅eW⁻¹"
+@unitdim molarconductivity Meridian "eS⋅em²eg-mol⁻¹"
 
-@unitdim electricpotential/M Meridian "eV*kg⁻¹"
-@unitdim action*speed/Q Meridian "eV*em"
-@unitdim electricfield Meridian "eV*em⁻¹"
-@unitdim permittivity Meridian "eF*em⁻¹"
-@unitdim inv(permittivity) Meridian "em*eF⁻¹"
-@unitdim permeability Meridian "eH*em⁻¹"
-@unitdim inv(permeability) Meridian "em*eH⁻¹"
-@unitdim resistivity Meridian "eΩ*em"
-@unitdim conductivity Meridian "eS*em⁻¹"
-@unitdim magneticdipolemoment Meridian "eJ*eT⁻¹"
-@unitdim vectorpotential Meridian "eWb*em⁻¹"
-@unitdim magneticmoment Meridian "eWb*em"
+@unitdim electricpotential/M Meridian "eV⋅kg⁻¹"
+@unitdim action*speed/Q Meridian "eV⋅em"
+@unitdim electricfield Meridian "eV⋅em⁻¹"
+@unitdim permittivity Meridian "eF⋅em⁻¹"
+@unitdim inv(permittivity) Meridian "em⋅eF⁻¹"
+@unitdim permeability Meridian "eH⋅em⁻¹"
+@unitdim inv(permeability) Meridian "em⋅eH⁻¹"
+@unitdim resistivity Meridian "eΩ⋅em"
+@unitdim conductivity Meridian "eS⋅em⁻¹"
+@unitdim magneticdipolemoment Meridian "eJ⋅eT⁻¹"
+@unitdim vectorpotential Meridian "eWb⋅em⁻¹"
+@unitdim magneticmoment Meridian "eWb⋅em"
 @unitdim mobility Meridian "em²s⁻¹eV⁻¹"
 
 for U ∈ (:Gauss, :EMU, :ESU, :LorentzHeaviside)
@@ -690,45 +741,46 @@ for U ∈ (:Gauss, :EMU, :ESU, :LorentzHeaviside)
         @unitdim force $U "dyn"
         @unitdim inv(force) $U "dyn⁻¹"
         @unitdim specificforce $U "gal"
-        @unitdim specificforce/L $U "gal*cm⁻¹"
+        @unitdim specificforce/L $U "gal⋅cm⁻¹"
         @unitdim pressure $U "Ba"
         @unitdim compressibility $U "Ba⁻¹"
         @unitdim energy $U "erg"
         @unitdim inv(energy) $U "erg⁻¹"
-        @unitdim power $U "erg*s⁻¹"
-        @unitdim inv(power) $U "s*erg⁻¹"
+        @unitdim power $U "erg⋅s⁻¹"
+        @unitdim inv(power) $U "s⋅erg⁻¹"
 
         @unitdim catalysis $U "kat"
-        @unitdim molarenergy $U "erg*mol⁻¹"
-        @unitdim molarentropy $U "erg*K⁻¹mol⁻¹"
+        @unitdim molarenergy $U "erg⋅mol⁻¹"
+        @unitdim molarentropy $U "erg⋅K⁻¹mol⁻¹"
 
-        @unitdim luminousflux/power $U "lm*s*erg⁻¹"
-        @unitdim power/luminousflux $U "erg*s⁻¹lm⁻¹"
+        @unitdim luminousflux/power $U "lm⋅s⋅erg⁻¹"
+        @unitdim power/luminousflux $U "erg⋅s⁻¹lm⁻¹"
         @unitdim luminousintensity $U "cd"
         @unitdim illuminance $U "ph"
         showgroup(io::IO,::typeof(luminance),::typeof(normal($U))) = print(io,"sb")
 
-        @unitdim angularmomentum $U "erg*s"
-        @unitdim action*speed $U "erg*cm"
-        @unitdim fluence $U "dyn*cm⁻¹"
-        @unitdim compliance $U "cm*dyn⁻¹"
-        @unitdim impulse $U "dyn*s"
-        @unitdim yank $U "dyn*s⁻¹"
+        @unitdim angularmomentum $U "erg⋅s"
+        @unitdim action*speed $U "erg⋅cm"
+        @unitdim fluence $U "dyn⋅cm⁻¹"
+        @unitdim compliance $U "cm⋅dyn⁻¹"
+        @unitdim impulse $U "dyn⋅s"
+        @unitdim yank $U "dyn⋅s⁻¹"
 
         @unitdim viscosity $U "P"
         @unitdim diffusivity $U "St"
-        @unitdim intensity $U "erg*s⁻¹cm⁻²"
-        @unitdim powerdensity $U "erg*s⁻¹cm⁻³"
-        @unitdim intensity/Θ^4 $U "erg*s⁻¹cm⁻²K⁻⁴"
-        @unitdim pressure/Θ^4 $U "Ba*K⁻⁴"
-        @unitdim 𝟙/T/Θ $U "Hz*K⁻¹"
-        @unitdim entropy $U "erg*K⁻¹"
-        @unitdim specificentropy $U "erg*K⁻¹g⁻¹"
-        @unitdim specificenergy $U "erg*g⁻¹"
-        @unitdim thermalconductance $U "erg*s⁻¹K⁻¹"
-        @unitdim thermalresistance $U "K*s*erg⁻¹"
-        @unitdim thermalconductivity $U "erg*s⁻¹cm⁻¹K⁻¹"
-        @unitdim thermalresistivity $U "K*cm*s*erg⁻¹"
+        @unitdim irradiance $U "erg⋅s⁻¹cm⁻²"
+        @unitdim powerdensity $U "erg⋅s⁻¹cm⁻³"
+        @unitdim spectralexposure $U "erg⋅cm⁻²⋅Hz⁻¹"
+        @unitdim irradiance/Θ^4 $U "erg⋅s⁻¹cm⁻²K⁻⁴"
+        @unitdim pressure/Θ^4 $U "Ba⋅K⁻⁴"
+        @unitdim 𝟙/T/Θ $U "Hz⋅K⁻¹"
+        @unitdim entropy $U "erg⋅K⁻¹"
+        @unitdim specificentropy $U "erg⋅K⁻¹g⁻¹"
+        @unitdim specificenergy $U "erg⋅g⁻¹"
+        @unitdim thermalconductance $U "erg⋅s⁻¹K⁻¹"
+        @unitdim thermalresistance $U "K⋅s⋅erg⁻¹"
+        @unitdim thermalconductivity $U "erg⋅s⁻¹cm⁻¹K⁻¹"
+        @unitdim thermalresistivity $U "K⋅cm⋅s⋅erg⁻¹"
     end
 end
 
@@ -736,20 +788,20 @@ end
 @unitdim magneticflux EMU "Mx"
 @unitdim magneticfluxdensity EMU "G"
 @unitdim magneticfield EMU "Oe"
-@unitdim reluctance EMU "Bi*Mx⁻¹"
-@unitdim magneticdipolemoment EMU "erg*G⁻¹"
-@unitdim vectorpotential EMU "Mx*cm⁻¹"
-@unitdim magneticmoment EMU "Mx*cm"
+@unitdim reluctance EMU "Bi⋅Mx⁻¹"
+@unitdim magneticdipolemoment EMU "erg⋅G⁻¹"
+@unitdim vectorpotential EMU "Mx⋅cm⁻¹"
+@unitdim magneticmoment EMU "Mx⋅cm"
 @unitdim polestrength EMU "pole"
 
 @unitdim charge Gauss "Fr"
 @unitdim magneticflux Gauss "Mx"
 @unitdim magneticfluxdensity Gauss "G"
 @unitdim magneticfield Gauss "Oe"
-@unitdim reluctance Gauss "Fr*s⁻¹Mx⁻¹"
-@unitdim magneticdipolemoment Gauss "erg*G⁻¹"
-@unitdim vectorpotential Gauss "Mx*cm⁻¹"
-@unitdim magneticmoment Gauss "Mx*cm"
+@unitdim reluctance Gauss "Fr⋅s⁻¹Mx⁻¹"
+@unitdim magneticdipolemoment Gauss "erg⋅G⁻¹"
+@unitdim vectorpotential Gauss "Mx⋅cm⁻¹"
+@unitdim magneticmoment Gauss "Mx⋅cm"
 
 @unitdim force MTS "sn"
 @unitdim inv(force) MTS "sn⁻¹"
@@ -757,23 +809,34 @@ end
 @unitdim compressibility MTS "pz⁻¹"
 
 @unitdim mass GravitationalMetric "hyl"
-@unitdim mass GravitationalSI2019 "hyl"
-@unitdim mass GravitationalMeridian "ehyl"
+#@unitdim mass GravitationalSI2019 "hyl"
+#@unitdim mass GravitationalMeridian "ehyl"
 @unitdim mass British "slug"
 @unitdim mass IPS "slinch"
 @unitdim force FPS "pdl"
-@unitdim pressure FPS "pdl*ft⁻²"
-@unitdim density British "slug*ft⁻³"
-@unitdim density IPS "slinch*in⁻³"
-@unitdim density GravitationalMetric "hyl*m⁻³"
-@unitdim density GravitationalSI2019 "hyl*m⁻³"
-@unitdim density GravitationalMeridian "ehyl*m⁻³"
+@unitdim pressure FPS "pdl⋅ft⁻²"
+@unitdim density British "slug⋅ft⁻³"
+@unitdim density IPS "slinch⋅in⁻³"
+@unitdim density GravitationalMetric "hyl⋅m⁻³"
+#@unitdim density GravitationalSI2019 "hyl⋅m⁻³"
+#@unitdim density GravitationalMeridian "ehyl⋅m⁻³"
+
+@unitdim L Rydberg "a₀"
+@unitdim inv(L) Rydberg "a₀⁻¹"
+@unitdim Q Electronic "𝘦"
+@unitdim Q Stoney "𝘦"
+@unitdim Q Schrodinger "𝘦"
+@unitdim Q CosmologicalQuantum "𝘦ₙ"
+@unitdim inv(Q) Electronic "𝘦⁼¹"
+@unitdim inv(Q) Stoney "𝘦⁼¹"
+@unitdim inv(Q) Schrodinger "𝘦⁼¹"
+@unitdim inv(Q) CosmologicalQuantum "𝘦ₙ⁼¹"
 
 for U ∈ (:FPS,:IPS,:British,:English,:Survey)
     @eval begin
         @unitdim frequency $U "Hz"
-        @unitdim frequencydrift $U "Hz*s⁻¹"
-        @unitdim 𝟙/T/Θ $U "Hz*°R⁻¹"
+        @unitdim frequencydrift $U "Hz⋅s⁻¹"
+        @unitdim 𝟙/T/Θ $U "Hz⋅°R⁻¹"
     end
 end
 for U ∈ (:FPS,:British,:English,:Survey)
@@ -812,11 +875,14 @@ $(convertext(:time,"length(U,S)/speed(U,S)"))
 Dimension along which events are ordered or `T` (s), unit conversion factor.
 
 ```Julia
-julia> T(IAU,Metric) # s⋅day⁻¹
+julia> T(MPH,Metric) # s⋅h⁻¹
+$(T(MPH,Metric))
+
+julia> T(IAU,Metric) # s⋅D⁻¹
 $(T(IAU,Metric))
 
-julia> T(PlanckGauss,Metric) # s⋅tP⁻¹
-$(T(PlanckGauss,Metric))
+julia> T(Hubble,Metric)
+$(T(Hubble,Metric))
 ```
 """ T
 

@@ -86,10 +86,10 @@ for i ∈ 1:dims
 end
 const usq = Values(F,M,L,T,Q,Θ,N,J,A,Λ,C)
 
-@pure function factorize(x::Float64,A::Group{Int,N},B::Group{Int,N},C::Group{Int,N},D::Group{Int,N},E::Group{Int,N}) where N
+@pure function factorize(x::Float64,A::Group{Int,N},B::Group{Int,N},C::Group{Int,N},D::Group{Int,N},E::Group{Int,N},F::Group{Int,N},G::Group{Int,N},H::Group{Int,N}) where N
     if isinteger(x)
         try
-            return factorize(Int(x),A,B,C,D,E)
+            return factorize(Int(x),A,B,C,D,E,F,G,H)
         catch
         end
     end
@@ -99,12 +99,15 @@ const usq = Values(F,M,L,T,Q,Θ,N,J,A,Λ,C)
     Group(zeros(Values{N,Int}),x)*A^a*(A/B^4/D^2)^b*(A/B^3/C^2/D)^c
 end
 
-@pure function factorize(x::Int,A::Group{Int,N},B::Group{Int,N},C::Group{Int,N},D::Group{Int,N},E::Group{Int,N}) where N
+@pure function factorize(x::Int,A::Group{Int,N},B::Group{Int,N},C::Group{Int,N},D::Group{Int,N},E::Group{Int,N},F::Group{Int,N},G::Group{Int,N},H::Group{Int,N}) where N
     (x,b) = factorfind(x,2)
     (x,c) = factorfind(x,3)
     (x,d) = factorfind(x,5)
-    (x,e) = factorfind(x,11)
-    Group(zeros(Values{N,Int}),x)*B^b*C^c*D^d*E^e
+    (x,e) = factorfind(x,7)
+    (x,f) = factorfind(x,11)
+    (x,g) = factorfind(x,19)
+    (x,h) = factorfind(x,43)
+    Group(zeros(Values{N,Int}),x)*B^b*C^c*D^d*E^e*F^f*G^g*H^h
 end
 
 const basis = Values("kB", "NA", "𝘩", "𝘤", "𝘦", "Kcd", "ΔνCs", "R∞", "α", "μₑᵤ", "μₚᵤ", "ΩΛ", "H0", "g₀", "aⱼ", "au", "ft", "ftUS", "lb", "T₀", "atm", "inHg", "RK90", "KJ90", "RK", "KJ", "Rᵤ2014", "Ωᵢₜ", "Vᵢₜ", "kG", "mP", "GME", "GMJ", "φ", "ℯ", "γ", "τ", "2", "3", "5", "7", "11", "19","43")

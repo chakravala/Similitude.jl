@@ -14,11 +14,11 @@
 
 include("$dir/constant.jl")
 
-@pure factorize(x,a,b,c,d,e) = Similitude.factorize(x,param(a),param(b),param(c),param(d),param(e))
+@pure factorize(x,a,b,c,d,e,f,g,h) = Similitude.factorize(x,param(a),param(b),param(c),param(d),param(e),param(f),param(g),param(h))
 
 @pure Constant(D::Number) = 𝟏*D
-@pure Constant(D::Float64) = Constant(factorize(D,τ,𝟐,𝟑,𝟓,𝟏𝟏))
-@pure Constant(D::Int) = Constant(factorize(D,τ,𝟐,𝟑,𝟓,𝟏𝟏))
+@pure Constant(D::Float64) = Constant(factorize(D,τ,𝟐,𝟑,𝟓,𝟕,𝟏𝟏,𝟏𝟗,𝟒𝟑))
+@pure Constant(D::Int) = Constant(factorize(D,τ,𝟐,𝟑,𝟓,𝟕,𝟏𝟏,𝟏𝟗,𝟒𝟑))
 @pure Constant(D::Constant) = D
 @pure Constant(D::AbelianGroup) = Constant{D}()
 

@@ -61,7 +61,7 @@ Base.:(==)(a::Group,b::Group) = a.v == b.v && a.c == b.c
 @pure promoteints(v) = checkints(v) ? Int.(v) : v
 
 const expos = Values('⁰','¹','²','³','⁴','⁵','⁶','⁷','⁸','⁹')
-const chars = Dict([[string(i-1)[1]=>expos[i] for i ∈ 1:length(expos)];['.'=>'⋅','-'=>'⁻','e'=>'ᵉ','v'=>'ᵛ','₀'=>'⁰','₁'=>'¹','₂'=>'²','₃'=>'³','₄'=>'⁴','₅'=>'⁵','₆'=>'⁶','₇'=>'⁷','₈'=>'⁸','₉'=>'⁹','*'=>'*']])
+const chars = Dict([[string(i-1)[1]=>expos[i] for i ∈ 1:length(expos)];['.'=>'⋅','-'=>'⁻','e'=>'ᵉ','v'=>'ᵛ','₀'=>'⁰','₁'=>'¹','₂'=>'²','₃'=>'³','₄'=>'⁴','₅'=>'⁵','₆'=>'⁶','₇'=>'⁷','₈'=>'⁸','₉'=>'⁹','*'=>'*','⋅'=>'⋅']])
 
 makeint(x) = x
 @pure makint(x::Int) = x
@@ -95,7 +95,7 @@ function printexpo(io::IO, d, x::AbstractFloat)
                 if (d == 10 || d == "10") && length(string(abs(x)))>5
                     x < 0 && print(io, '/')
                     print(io, makeint(10^abs(x)))
-                    !(x<0) && print(io, '*')
+                    !(x<0) && print(io, '⋅')
                 else
                     print(io, d)
                     printexpo(io, x)
@@ -113,13 +113,13 @@ function printexpo(io::IO, d, x::AbstractFloat)
                     net = ten÷10^pow
                     if !isone(net)
                         print(io, net)
-                        print(io, x < 0 ? '/' : '*')
+                        print(io, x < 0 ? '/' : '⋅')
                     end
                     print(io, d)
                     printexpo(io, pow)
                 elseif length(string(abs(x)))>5
                     print(io, ten)
-                    !(x<0) && print(io, '*')
+                    !(x<0) && print(io, '⋅')
                 else
                     printexpo(io, d, rationalize(x))
                 end
@@ -187,7 +187,7 @@ function printdims(io::IO,x::Group{T,N},name) where {T,N}
     else
         for i ∈ 1:N-M
             printexpo(io, name[i], makeint(x.v[i]))
-            typeof(name[i])==String && isone(x.v[i]) && !iszero(norm(last(first(x.v,N-M),N-i-M))) && print(io,'*')
+            typeof(name[i])==String && isone(x.v[i]) && !iszero(norm(last(first(x.v,N-M),N-i-M))) && print(io,'⋅')
         end
     end
 end
@@ -210,7 +210,7 @@ function showgroup(io::IO,x::Group{T,N},u=Natural,c='𝟙') where {T,N}
         if abs(xc)<1
             print(io,'/',makeint(inv(xc)))
         else
-            !iz && print(io, '*')
+            !iz && print(io, '⋅')
             print(io, makeint(xc))
         end
     end

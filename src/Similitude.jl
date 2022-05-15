@@ -112,7 +112,7 @@ include("$dir/initdata.jl")
 (u::UnitSystem)(d::Group) = normal(Metric)(d)
 
 for unit ∈ Convert
-    if unit ∉ (:length,:time,:angle,:molarmass,:luminousintensity,:luminance,:luminousefficacy,:angularfrequency,:angularwavenumber,:angularmomentum,:solidangle,:magneticdipolemoment)
+    if unit ∉ (:length,:time,:angle,:molarmass,:luminousintensity,:luminance,:luminousefficacy,:angularfrequency,:angularwavenumber,:angularmomentum,:solidangle,:magneticdipolemoment,:radiantintensity,:radiance)
         @eval const  $unit = dimensions(UnitSystems.$unit(UnitSystems.Natural,Natural))
     end
 end
@@ -124,6 +124,8 @@ const angularmomentum = F*L*T*A
 const magneticdipolemoment = F/M*L*T*Q/A/C
 const luminousintensity = luminousflux/solidangle
 const luminance = luminousintensity/area
+const radiantintensity = power/solidangle
+const radiance = radiantintensity/area
 
 @doc """
     (D::Dimension)(U::UnitSystem,S::UnitSystem) = ConvertUnit{D,U,S}()
