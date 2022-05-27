@@ -12,17 +12,10 @@
 #   https://github.com/chakravala
 #   https://crucialflow.com
 
+import UnitSystems: listext, Kinematic, Mechanical, Electromagnetic, Thermodynamic, Molar, Photometric
+
 # dimension
 
-"""
-    Dimension{D} <: AbstractModule
-
-Physical `Dimension` represented by `Group` element `D`.
-```Julia
-F, M, L, T, Q, Θ, N, J, A, Λ, C
-```
-Derived `Dimension` can be obtained from multiplicative base.
-"""
 struct Dimension{D} <: AbstractModule
     @pure Dimension{D}() where D = new{D}()
 end
@@ -65,6 +58,7 @@ Base.log(b::Number,x::Dimension{D}) where D = Dimension{log(b,D)}()
 Base.exp(x::Dimension{D}) where D = Dimension{exp(D)}()
 Base.exp2(x::Dimension{D}) where D = Dimension{exp2(D)}()
 Base.exp10(x::Dimension{D}) where D = Dimension{exp10(D)}()
+Base.:^(::UnitSystems.Constant{B},x::Dimension{D}) where {B,D} = Dimension{B^D}()
 Base.:^(b::T,x::Dimension{D}) where {T<:Number,D} = Dimension{b^D}()
 Base.:^(::Dimension{D},b::Number) where D = Dimension{D^b}()
 Base.:^(::Dimension{D},b::Integer) where D = Dimension{D^b}()
@@ -76,7 +70,7 @@ Base.:*(a::Dimension{D},b::Number) where D = Dimension{D*b}()
 Base.:/(a::Number,b::Dimension) = a*inv(b)
 Base.:/(a::Dimension,b::Number) = a*inv(b)
 
-const isq = Values('F','M','L','T','Q','Θ','N','J','A','Λ','C')
+const isq = Values('F','M','L','T','Q','Θ','N','J','A','R','C')
 const dims = length(isq)
 factorfind(x,k,i=0) = iszero(x) ? (x,0) : (r = x%k; iszero(r) ? factorfind(x÷k,k,i+1) : (x,i))
 
@@ -84,7 +78,7 @@ const 𝟙 = Dimension(valueat(0,dims))
 for i ∈ 1:dims
     @eval const $(Symbol(isq[i])) = Dimension(valueat($i,dims))
 end
-const usq = Values(F,M,L,T,Q,Θ,N,J,A,Λ,C)
+const usq = Values(F,M,L,T,Q,Θ,N,J,A,R,C)
 
 @pure function factorize(x::Float64,A::Group{Int,N},B::Group{Int,N},C::Group{Int,N},D::Group{Int,N},E::Group{Int,N},F::Group{Int,N},G::Group{Int,N},H::Group{Int,N}) where N
     if isinteger(x)
@@ -110,7 +104,7 @@ end
     Group(zeros(Values{N,Int}),x)*B^b*C^c*D^d*E^e*F^f*G^g*H^h
 end
 
-const basis = Values("kB", "NA", "𝘩", "𝘤", "𝘦", "Kcd", "ΔνCs", "R∞", "α", "μₑᵤ", "μₚᵤ", "ΩΛ", "H0", "g₀", "aⱼ", "au", "ft", "ftUS", "lb", "T₀", "atm", "inHg", "RK90", "KJ90", "RK", "KJ", "Rᵤ2014", "Ωᵢₜ", "Vᵢₜ", "kG", "mP", "GME", "GMJ", "φ", "ℯ", "γ", "τ", "2", "3", "5", "7", "11", "19","43")
+const basis = Values("kB", "NA", "𝘩", "𝘤", "𝘦", "Kcd", "ΔνCs", "R∞", "α", "μₑᵤ", "μₚᵤ", "ΩΛ", "H0", "g₀", "aⱼ", "au", "ft", "ftUS", "lb", "T₀", "atm", "inHg", "RK90", "KJ90", "RK", "KJ", "Rᵤ2014", "Ωᵢₜ", "Vᵢₜ", "kG", "mP", "GME", "GMJ", "φ", "γ", "ℯ", "τ", "2", "3", "5", "7", "11", "19","43")
 const vals = length(basis)
 @pure function constant(d::Group,C::Coupling=UnitSystems.Universe); cs = 
     UnitSystems.kB^makeint(d.v[1])*
@@ -246,6 +240,8 @@ Base.log(b::Number,x::Quantity{D,U}) where {D,U} = Quantity{log(b,D),U}(log(b,x.
 Base.exp(x::Quantity{D,U}) where {D,U} = Quantity{exp(D),U}(exp(x.v))
 Base.exp2(x::Quantity{D,U}) where {D,U} = Quantity{exp2(D),U}(exp2(x.v))
 Base.exp10(x::Quantity{D,U}) where {D,U} = Quantity{exp10(D),U}(exp10(x.v))
+#Base.:^(a::Constant,b::Quantity{D,U}) where {D,U} = Quantity{a^D,U}(a^b.v)
+Base.:^(a::UnitSystems.Constant,b::Quantity{D,U}) where {D,U} = Quantity{a^D,U}(a^b.v)
 Base.:^(a::Number,b::Quantity{D,U}) where {D,U} = Quantity{a^D,U}(a^b.v)
 Base.:^(a::Quantity{D,U},b::Number) where {D,U} = Quantity{D^b,U}(a.v^b)
 Base.:^(a::Quantity{D,U},b::Integer) where {D,U} = Quantity{D^b,U}(a.v^b)
@@ -335,6 +331,9 @@ Base.getindex(x::Quantities{D,U},i::Integer) where {D,U} = Quantity{D,U}(x.v[i])
 Base.getindex(x::Quantities{D,U},i::Int) where {D,U} = Quantity{D,U}(x.v[i])
 
 # functors
+# 1,2,3,4, 5, 6, 7,  8,9,10,11
+#kB,ħ,𝘤,μ₀,mₑ,Mᵤ,Kcd,A,λ,αL,g₀
+# F,M,L,T, Q, Θ, N,  J,A,R, C
 
 import UnitSystems: UnitSystem
 UnitSystem(::Dimension{D}) where D = Dimension{UnitSystem(D)}()
@@ -349,7 +348,7 @@ function UnitSystem(d::Group)
         d.v[2]+d.v[6]+d.v[7]+2(d.v[1]+d.v[8])-d.v[3]-d.v[4],
         -d.v[7],
         d.v[8],
-        d.v[9]-2d.v[10],
+        d.v[3]+d.v[4]+d.v[9]+d.v[5]/2-d.v[1]-d.v[8],
         d.v[10]-d.v[5]/2,
         -(d.v[5]+d.v[11]),
         d.v[3]+d.v[4]-d.v[6]-2(d.v[1]+d.v[8])))
@@ -363,7 +362,7 @@ function UnitSystem(d::Group{<:Integer})
         d.v[2]+d.v[6]+d.v[7]+2(d.v[1]+d.v[8])-d.v[3]-d.v[4],
         -d.v[7],
         d.v[8],
-        d.v[9]-2d.v[10],
+        d.v[3]+d.v[4]+d.v[9]+d.v[5]//2-d.v[1]-d.v[8],
         d.v[10]-d.v[5]//2,
         -(d.v[5]+d.v[11]),
         d.v[3]+d.v[4]-d.v[6]-2(d.v[1]+d.v[8])))

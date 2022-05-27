@@ -48,6 +48,8 @@ coef(g::Group) = UnitSystems.measure(g.c)
 
 Base.:(==)(a::Group,b::Group) = a.v == b.v && a.c == b.c
 
+Base.abs(a::Group{T,N,S}) where {T,N,S} = Group{T,N,S}(a.v,abs(a.c))
+
 @pure isonezero(x) = isone(x) || iszero(x)
 @pure checkint(v::T) where T<:Integer = v
 @pure checkint(v::T) where T<:Rational = isone(denominator(v))
@@ -57,6 +59,7 @@ Base.:(==)(a::Group,b::Group) = a.v == b.v && a.c == b.c
 @pure checkints(v::Values{N,<:Integer} where N) = v
 @pure promoteint(v::T) where T<:Integer = v
 @pure promoteint(v) = checkint(v) ? Int(v) : v
+@pure promoteint(v::UnitSystems.Constant) = isone(v) ? 1 : v
 @pure promoteints(v::Values{N,<:Integer} where N) = v
 @pure promoteints(v) = checkints(v) ? Int.(v) : v
 
@@ -207,11 +210,15 @@ function showgroup(io::IO,x::Group{T,N},u=Natural,c='𝟙') where {T,N}
     iz && (isone(xc)||abs(xc)<1) && print(io, c)
     #back && printexpo(io, 10, last(x.v))
     if !isone(xc)
-        if abs(xc)<1
+        if abs(xc)<1 && !isconstant(xc)
             print(io,'/',makeint(inv(xc)))
         else
             !iz && print(io, '⋅')
-            print(io, makeint(xc))
+            if isconstant(xc)
+                print(io, '(', makeint(xc), ')')
+            else
+                print(io, makeint(xc))
+            end
         end
     end
 end
@@ -318,8 +325,12 @@ Base.zero(x::AbelianGroup) = log(one(x))
 Base.iszero(x::AbelianGroup) = false
 Base.iszero(x::LogGroup) = isone(dimensions(x))
 
-Base.:*(a::Group,b::Group) = Group(a.v+b.v,coef(a)*coef(b))
-Base.:/(a::Group,b::Group) = Group(a.v-b.v,coef(a)/coef(b))
+coefprod(a,b) = a*b
+coefprod(a::UnitSystems.Constant,b) = a*Constant(b)
+coefprod(a,b::UnitSystems.Constant) = Constant(a)*b
+coefprod(a::UnitSystems.Constant,b::UnitSystems.Constant) = a*b
+Base.:*(a::Group,b::Group) = Group(a.v+b.v,coefprod(coef(a),coef(b)))
+Base.:/(a::Group,b::Group) = Group(a.v-b.v,coefprod(coef(a),inv(coef(b))))
 Base.:^(a::Group,b::Number) = Group(b*a.v,coef(a)^b)
 Base.:^(a::Group,b::Integer) = Group(b*a.v,coef(a)^b)
 Base.:^(a::Group,b::Rational) = Group(b*a.v,coef(a)^b)
@@ -331,7 +342,7 @@ Base.inv(a::Group{T}) where T = Group{T}(-a.v,inv(coef(a)))
 
 @pure valueat(::Val{j},::Val{k}) where {j,k} = valueat(j,k)
 valueat(j,k,z::T=1) where T = Group(Values{k,T}([i==j ? z : 0 for i ∈ 1:k]))
-Base.:*(a::Number,b::Group{T,N}) where {T,N} = Group{T,N}(b.v,a*coef(b))
-Base.:*(a::Group{T,N},b::Number) where {T,N} = Group{T,N}(a.v,coef(a)*b)
+Base.:*(a::Number,b::Group{T,N}) where {T,N} = Group{T,N}(b.v,coefprod(a,coef(b)))
+Base.:*(a::Group{T,N},b::Number) where {T,N} = Group{T,N}(a.v,coefprod(coef(a),b))
 Base.:/(a::Number,b::Group) = a*inv(b)#
 Base.:/(a::Group,b::Number) = a*inv(b)#

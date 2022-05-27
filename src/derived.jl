@@ -48,7 +48,8 @@ const wienfrequency = Constant(2.821439372122078893)*boltzmann(SI)/planck(SI)
 
 # angle
 
-const radian = MetricEngineering(𝟏,A)
+#const radian = MetricEngineering(𝟏,A)
+const spatian = MetricSpatian(𝟏,A)
 const steradian = MetricEngineering(𝟏,solidangle)
 const degree = MetricDegree(𝟏,A)
 const squaredegree = MetricDegree(𝟏,solidangle)
@@ -251,6 +252,10 @@ const stilb = Gauss(𝟏,luminance)
 const lambert = Gauss(𝟐/τ,luminance)
 const footlambert = English(𝟐/τ,luminance)
 const bril = centi*nano*lambert
+const talbot = Metric(𝟏,luminousenergy)
+const lumerg = Gauss(centi^2*milli,luminousenergy)
+const rayleigh = Metric(deka*giga,photonirradiance)
+const flick = Metric(deka*giga,radiance/L)
 
 @pure neper(U::UnitSystem) = U(𝟏,log(𝟙))
 @pure bel(U::UnitSystem) = U(𝟏,log10(𝟙))
@@ -263,7 +268,7 @@ const galileo = Gauss(𝟏,specificforce)
 const eotvos = Gauss(nano,specificforce/L)
 const poise = Gauss(𝟏,viscosity)
 const reyn = IPS(𝟏,viscosity)
-const diopter = Metric(𝟏,wavenumber)
+const diopter = Metric(𝟏,angularwavenumber)
 const kayser = Gauss(𝟏,wavenumber)
 const darcy = Gauss(milli/atm,area)
 const stokes = Gauss(𝟏,diffusivity)
@@ -291,6 +296,7 @@ evaldim(::typeof(length)) = L
 evaldim(::typeof(time)) = T
 evaldim(::typeof(molarmass)) = M/N
 evaldim(::typeof(luminousefficacy)) = T*J/F/L
+evaldim(::typeof(UnitSystems.solidangle)) = A^2
 evaldim(unit::Dimension) = unit
 evaldim(unit::Symbol) = evaldim(eval(unit))
 evaldim(unit::Symbol,U) = evaldim(evaldim(unit),U)
@@ -300,12 +306,16 @@ evaldim(unit,U) = normal(U)(unit)
 (::typeof(luminousefficacy))(U::UnitSystem,S::UnitSystem) = (T*J/F/L)(U,S)
 
 dimlist(text,dim) = "$text : [$(evaldim(dim))], [$(evaldim(dim,British))], [$(evaldim(dim,Metric))], [$(evaldim(dim,EMU))], [$(evaldim(dim,ESU))]"
+dimlist(U) = join(dimtext(normal(U)) == isq ? isodim.(Ref(U),usq) : unitdim.(Ref(U),usq), ", ")
+isodim(U,D) = (UD = U(D); D==UD ? "$D" : "$D=$UD")
+unitdim(U,D) = (io = IOBuffer(); showgroup(io,U(D),U); "$D=$(String(take!(io)))")
 
 convertext(unit,fun) = """
 ```Julia
 $(dimlist(unit,unit))
 $unit(U::UnitSystem,S::UnitSystem) = $fun
 $unit(v::Real,U::UnitSystem,S::UnitSystem) = v/$unit(U,S)
+$(evaldim(unit)(Unified))
 ```
 """
 
@@ -327,13 +337,21 @@ function unitext(unit,text)
 ```Julia
 $unit(U::UnitSystem) = $text
 $(dimlist(sym,dim))
+$(eval(unit)(Unified))
 ```
 """
 end
 
+systext(sys,text) = """
+```Julia
+$sys = $text
+$(dimlist(eval(sys)))
+```
+"""
+
 # 1,2,3,4, 5, 6, 7,  8,9,10,11
 #kB,ħ,𝘤,μ₀,mₑ,Mᵤ,Kcd,A,λ,αL,g₀
-# F,M,L,T, Q, Θ, N,  J,A,Λ, C
+# F,M,L,T, Q, Θ, N,  J,A,R, C
 
 function (u::typeof(normal(MetricEngineering)))(d::Group)
     Group(Values(d.v[1],d.v[2],d.v[3],d.v[4],d.v[5],d.v[6],d.v[7],d.v[8],d.v[9],0,0))
@@ -352,13 +370,13 @@ end
 end=#
 
 function (u::typeof(normal(Gauss)))(d::Group{<:Integer})
-    Group(Values(0,d.v[1]+d.v[2]+d.v[5]//2,d.v[1]+d.v[3]+(3//2)*d.v[5]+d.v[11],d.v[4]-2(d.v[1]+d.v[5])-d.v[11],0,d.v[6],d.v[7],d.v[8],0,0,0))
+    Group(Values(0,d.v[1]+d.v[2]+d.v[5]//2,d.v[1]+d.v[3]+(3//2)*d.v[5]+d.v[11],d.v[4]-2(d.v[1])-d.v[5]-d.v[11],0,d.v[6],d.v[7],d.v[8],0,0,0))
 end
 function (u::typeof(normal(ESU)))(d::Group{<:Integer})
-    Group(Values(0,d.v[1]+d.v[2]+d.v[5]//2,d.v[1]+d.v[3]+(3//2)*d.v[5],d.v[4]-2(d.v[1]+d.v[5]),0,d.v[6],d.v[7],d.v[8],0,0,0))
+    Group(Values(0,d.v[1]+d.v[2]+d.v[5]//2,d.v[1]+d.v[3]+(3//2)*d.v[5],d.v[4]-2(d.v[1])-d.v[5],0,d.v[6],d.v[7],d.v[8],0,0,0))
 end
 function (u::typeof(normal(EMU)))(d::Group{<:Integer})
-    Group(Values(0,d.v[1]+d.v[2]+d.v[5]//2,d.v[1]+d.v[3]+d.v[5]//2,d.v[4]-d.v[5]-2(d.v[1]),0,d.v[6],d.v[7],d.v[8],0,0,0))
+    Group(Values(0,d.v[1]+d.v[2]+d.v[5]//2,d.v[1]+d.v[3]+d.v[5]//2,d.v[4]-2(d.v[1]),0,d.v[6],d.v[7],d.v[8],0,0,0))
 end
 
 function (u::typeof(normal(Gauss)))(d::Group)
@@ -368,7 +386,7 @@ function (u::typeof(normal(ESU)))(d::Group)
     Group(Values(0,d.v[1]+d.v[2]+d.v[5]/2,d.v[1]+d.v[3]+(3/2)*d.v[5],d.v[4]-2(d.v[1])-d.v[5],0,d.v[6],d.v[7],d.v[8],0,0,0))
 end
 function (u::typeof(normal(EMU)))(d::Group)
-    Group(Values(0,d.v[1]+d.v[2]+d.v[5]/2,d.v[1]+d.v[3]+d.v[5]/2,d.v[4]-2(d.v[1]),0,d.v[6],d.v[7],d.v[8],0,0,0))
+    Group(Values(0,d.v[1]+d.v[2]+d.v[5]/2,d.v[1]+d.v[3]+d.v[5]/2,d.v[4]-2(d.v[1]),0,d.v[6],d.v[7],d.v[8],0,d.v[10],0))
 end
 
 function (u::typeof(normal(Stoney)))(d::Group)
@@ -420,13 +438,30 @@ macro unitgroup(U,S)
     :((u::typeof(normal($U)))(d::Group) = normal($S)(d))
 end
 
+#=@unitgroup SI2019 Metric
+@unitgroup SI1976 Metric
+@unitgroup Conventional Metric
+@unitgroup CODATA Metric
+@unitgroup International Metric
+@unitgroup InternationalMean Metric
+@unitgroup MTS Metric
+@unitgroup KKH Metric
+@unitgroup MPH Metric
+@unitgroup Nautical Metric
+@unitgroup Meridian Metric
+@unitgroup FFF Metric
+@unitgroup IAU Metric
+@unitgroup IAUE Metric
+@unitgroup IAUJ Metric=#
+
 @unitgroup MetricTurn MetricDegree
+@unitgroup MetricSpatian MetricDegree
+@unitgroup MetricGradian MetricDegree
 @unitgroup MetricArcminute MetricDegree
 @unitgroup MetricArcsecond MetricDegree
-@unitgroup MetricGradian MetricDegree
 @unitgroup LorentzHeaviside Gauss
 #@unitgroup Thomson EMU
-@unitgroup Kennelly EMU
+#@unitgroup Kennelly EMU
 @unitgroup Schrodinger Rydberg
 @unitgroup QCD Planck
 @unitgroup QCDGauss PlanckGauss
@@ -456,17 +491,18 @@ Specify the `print` output for each base `Dimension` of `U::UnitSystem` with `St
 ```
 These standard examples are some of the built-in defaults.
 """
-macro unitdim(U,F,M,L,T,Q,Θ,N,J="lm",A="rad",Λ="",C="")
-    :(dimtext(::typeof(normal($U))) = Values($F,$M,$L,$T,$Q,$Θ,$N,$J,$A,$Λ,$C))
+macro unitdim(U,F,M,L,T,Q,Θ,N,J="lm",A="rad",R="",C="")
+    :(dimtext(::typeof(normal($U))) = Values($F,$M,$L,$T,$Q,$Θ,$N,$J,$A,$R,$C))
 end
 
 @unitdim Metric "kgf" "kg" "m" "s" "C" "K" "mol"
 @unitdim Meridian "kegf" "keg" "em" "s" "eC" "K" "eg-mol"
 @unitdim MetricTurn "kgf" "kg" "m" "s" "C" "K" "mol" "lm" "τ"
+@unitdim MetricSpatian "kgf" "kg" "m" "s" "C" "K" "mol" "lm" "ς"
+@unitdim MetricGradian "kgf" "kg" "m" "s" "C" "K" "mol" "lm" "gon"
 @unitdim MetricDegree "kgf" "kg" "m" "s" "C" "K" "mol" "lm" "deg"
 @unitdim MetricArcminute "kgf" "kg" "m" "s" "C" "K" "mol" "lm" "amin"
 @unitdim MetricArcsecond "kgf" "kg" "m" "s" "C" "K" "mol" "lm" "asec"
-@unitdim MetricGradian "kgf" "kg" "m" "s" "C" "K" "mol" "lm" "gon"
 @unitdim British "lb" "slug" "ft" "s" "C" "°R" "slug-mol"
 @unitdim English "lbf" "lbm" "ft" "s" "C" "°R" "lb-mol"
 @unitdim IPS "lb" "slinch" "in" "s" "C" "°R" "slinch-mol"
@@ -526,7 +562,7 @@ end
 @unitdim ESU Gauss
 @unitdim LorentzHeaviside Gauss
 #@unitdim Thomson Gauss
-@unitdim Kennelly Metric
+#@unitdim Kennelly Metric
 
 """
     @unitdim(D,U,S) -> showgroup(io::IO,::typeof(U(D)),::typeof(normal(U))) = print(io,S)
@@ -550,22 +586,24 @@ macro unitdim(D, U, S)
     :(showgroup(io::IO,::typeof($U($D)),::typeof(normal($U))) = print(io,$S))
 end
 
-for U ∈ (:MetricEngineering,:GravitationalMetric)#:SI2019Engineering,:GravitationalSI2019)
+for U ∈ (:MetricEngineering,:GravitationalMetric)
     @eval begin
         @unitdim frequency $U "Hz"
         @unitdim frequencydrift $U "Hz⋅s⁻¹"
+        @unitdim photonirradiance $U "Hz⋅m⁻²"
         @unitdim illuminance $U "lx"
         @unitdim luminousexposure $U "lx⋅s"
         showgroup(io::IO,::typeof(luminance),::typeof(normal($U))) = print(io,"nt")
     end
 end
-for U ∈ (:MetricEngineering,:English,:Survey)#:SI2019Engineering,:MeridianEngineering)
+for U ∈ (:MetricEngineering,:English,:Survey)
     @eval @unitdim specificforce $U "g₀"
 end
-for U ∈ (:Metric, :SI2019, :CODATA, :Conventional, :International, :InternationalMean, :MetricTurn, :MetricDegree, :MetricGradian, :MetricArcminute, :MetricArcsecond)
+for U ∈ (:Metric, :SI2019, :CODATA, :Conventional, :International, :InternationalMean, :MetricTurn, :MetricSpatian, :MetricGradian, :MetricDegree, :MetricArcminute, :MetricArcsecond)
     @eval begin
         @unitdim frequency $U "Hz"
         @unitdim frequencydrift $U "Hz⋅s⁻¹"
+        @unitdim photonirradiance $U "Hz⋅m⁻²"
         @unitdim force $U "N"
         @unitdim inv(force) $U "N⁻¹"
         @unitdim pressure $U "Pa"
@@ -605,6 +643,7 @@ for U ∈ (:Metric, :SI2019, :CODATA, :Conventional, :International, :Internatio
 
         @unitdim viscosity $U "Pa⋅s"
         @unitdim irradiance $U "W⋅m⁻²"
+        @unitdim inv(irradiance) $U "W⁻¹m²"
         @unitdim powerdensity $U "W⋅m⁻³"
         @unitdim spectralexposure $U "J⋅m⁻²⋅Hz⁻¹"
         @unitdim irradiance/Θ^4 $U "W⋅m⁻²K⁻⁴"
@@ -621,7 +660,7 @@ for U ∈ (:Metric, :SI2019, :CODATA, :Conventional, :International, :Internatio
         @unitdim molarconductivity $U "S⋅m²mol⁻¹"
 
         @unitdim electricpotential/M $U "V⋅kg⁻¹"
-        @unitdim electricpotential*L $U "V⋅m"
+        @unitdim electricflux $U "V⋅m"
         @unitdim electricfield $U "V⋅m⁻¹"
         @unitdim permittivity $U "F⋅m⁻¹"
         @unitdim inv(permittivity) $U "m⋅F⁻¹"
@@ -642,30 +681,26 @@ for U ∈ (:Metric, :SI2019, :CODATA, :Conventional, :International, :Internatio
         @unitdim magneticdipolemoment $U "J⋅T⁻¹"
     end
 end
-
-@unitdim angularmomentum MetricTurn "J⋅s⋅τ"
-@unitdim magneticdipolemoment MetricTurn "J⋅T⁻¹⋅τ⁻¹"
-@unitdim radiance MetricTurn "W⋅m⁻²⋅τ⁻²"
-@unitdim radiantintensity MetricTurn "W⋅τ⁻²"
-@unitdim angularmomentum MetricDegree "J⋅s⋅deg"
-@unitdim magneticdipolemoment MetricDegree "J⋅T⁻¹⋅deg⁻¹"
-@unitdim radiance MetricDegree "W⋅m⁻²⋅deg⁻²"
-@unitdim radiantintensity MetricDegree "W⋅deg⁻²"
-@unitdim angularmomentum MetricGradian "J⋅s⋅gon"
-@unitdim magneticdipolemoment MetricGradian "J⋅T⁻¹⋅gon⁻¹"
-@unitdim radiance MetricGradian "W⋅m⁻²⋅gon⁻²"
-@unitdim radiantintensity MetricGradian "W⋅gon⁻²"
-@unitdim angularmomentum MetricArcminute "J⋅s⋅amin"
-@unitdim magneticdipolemoment MetricArcminute "J⋅T⁻¹⋅amin⁻¹"
-@unitdim radiance MetricArcminute "W⋅m⁻²⋅amin⁻²"
-@unitdim radiantintensity MetricArcminute "W⋅amin⁻²"
-@unitdim angularmomentum MetricArcsecond "J⋅s⋅asec"
-@unitdim magneticdipolemoment MetricArcsecond "J⋅T⁻¹⋅asec⁻¹"
-@unitdim radiance MetricArcsecond "W⋅m⁻²⋅asec⁻²"
-@unitdim radiantintensity MetricArcsecond "W⋅asec⁻²"
+for U ∈ (:MetricTurn,:MetricSpatian,:MetricDegree,:MetricGradian,:MetricArcminute,:MetricArcsecond)
+    let u = dimtext(normal(eval(U)))[9]
+        @eval begin
+            @unitdim angularmomentum $U $("J⋅s⋅$(u)⁻¹")
+            @unitdim magneticdipolemoment $U $("J⋅T⁻¹⋅$(u)⁻¹")
+            @unitdim photonintensity $U $("Hz⋅$(u)⁻²")
+            @unitdim photonradiance $U $("Hz⋅m⁻²⋅$(u)⁻²")
+            @unitdim radiance $U $("W⋅m⁻²⋅$(u)⁻²")
+            @unitdim radiance*T $U $("W⋅m⁻²⋅$(u)⁻²⋅Hz⁻¹")
+            @unitdim radiance/L $U $("W⋅m⁻³⋅$(u)⁻²")
+            @unitdim radiantintensity $U "W⋅$(u)⁻²"
+            @unitdim radiantintensity*T $U $("W⋅$(u)⁻²⋅Hz⁻¹")
+            @unitdim radiantintensity/L $U $("W⋅$(u)⁻²⋅m⁻¹")
+        end
+    end
+end
 
 @unitdim frequency  Meridian "Hz"
 @unitdim frequencydrift Meridian "Hz⋅s⁻¹"
+@unitdim photonirradiance Meridian "Hz⋅m⁻²"
 @unitdim force Meridian "eN"
 @unitdim inv(force) Meridian "eN⁻¹"
 @unitdim pressure Meridian "ePa"
@@ -707,6 +742,7 @@ showgroup(io::IO,::typeof(luminance),::typeof(normal(Meridian))) = print(io,"ent
 
 @unitdim viscosity Meridian "ePa⋅s"
 @unitdim irradiance Meridian "eW⋅em⁻²"
+@unitdim inv(irradiance) Meridian "eW⁻¹em²"
 @unitdim powerdensity Meridian "eW⋅m⁻³"
 @unitdim spectralexposure Meridian "eJ⋅em⁻²⋅Hz⁻¹"
 @unitdim irradiance/Θ^4 Meridian "eW⋅em⁻²K⁻⁴"
@@ -737,7 +773,10 @@ showgroup(io::IO,::typeof(luminance),::typeof(normal(Meridian))) = print(io,"ent
 
 for U ∈ (:Gauss, :EMU, :ESU, :LorentzHeaviside)
     @eval begin
+        @unitdim volume $U "mL"
+        @unitdim numberdensity $U "mL⁻¹"
         @unitdim frequency $U "Hz"
+        @unitdim photonirradiance $U "Hz⋅m⁻²"
         @unitdim force $U "dyn"
         @unitdim inv(force) $U "dyn⁻¹"
         @unitdim specificforce $U "gal"
@@ -769,7 +808,8 @@ for U ∈ (:Gauss, :EMU, :ESU, :LorentzHeaviside)
         @unitdim viscosity $U "P"
         @unitdim diffusivity $U "St"
         @unitdim irradiance $U "erg⋅s⁻¹cm⁻²"
-        @unitdim powerdensity $U "erg⋅s⁻¹cm⁻³"
+        @unitdim inv(irradiance) $U "erg⁻¹s⋅cm²"
+        @unitdim powerdensity $U "erg⋅s⁻¹mL⁻¹"
         @unitdim spectralexposure $U "erg⋅cm⁻²⋅Hz⁻¹"
         @unitdim irradiance/Θ^4 $U "erg⋅s⁻¹cm⁻²K⁻⁴"
         @unitdim pressure/Θ^4 $U "Ba⋅K⁻⁴"
@@ -784,24 +824,24 @@ for U ∈ (:Gauss, :EMU, :ESU, :LorentzHeaviside)
     end
 end
 
-@unitdim current EMU "Bi"
+#@unitdim current EMU "Bi"
 @unitdim magneticflux EMU "Mx"
 @unitdim magneticfluxdensity EMU "G"
-@unitdim magneticfield EMU "Oe"
-@unitdim reluctance EMU "Bi⋅Mx⁻¹"
+#@unitdim magneticfield EMU "Oe"
+#@unitdim reluctance EMU "Bi⋅Mx⁻¹"
 @unitdim magneticdipolemoment EMU "erg⋅G⁻¹"
 @unitdim vectorpotential EMU "Mx⋅cm⁻¹"
-@unitdim magneticmoment EMU "Mx⋅cm"
-@unitdim polestrength EMU "pole"
+#@unitdim magneticmoment EMU "Mx⋅cm"
+#@unitdim polestrength EMU "pole"
 
-@unitdim charge Gauss "Fr"
+#@unitdim charge Gauss "Fr"
 @unitdim magneticflux Gauss "Mx"
 @unitdim magneticfluxdensity Gauss "G"
-@unitdim magneticfield Gauss "Oe"
-@unitdim reluctance Gauss "Fr⋅s⁻¹Mx⁻¹"
+#@unitdim magneticfield Gauss "Oe"
+#@unitdim reluctance Gauss "Fr⋅s⁻¹Mx⁻¹"
 @unitdim magneticdipolemoment Gauss "erg⋅G⁻¹"
 @unitdim vectorpotential Gauss "Mx⋅cm⁻¹"
-@unitdim magneticmoment Gauss "Mx⋅cm"
+#@unitdim magneticmoment Gauss "Mx⋅cm"
 
 @unitdim force MTS "sn"
 @unitdim inv(force) MTS "sn⁻¹"
@@ -809,20 +849,23 @@ end
 @unitdim compressibility MTS "pz⁻¹"
 
 @unitdim mass GravitationalMetric "hyl"
-#@unitdim mass GravitationalSI2019 "hyl"
-#@unitdim mass GravitationalMeridian "ehyl"
 @unitdim mass British "slug"
 @unitdim mass IPS "slinch"
+@unitdim molarmass GravitationalMetric "hyl⋅mol⁻¹"
+@unitdim molarmass British "slug⋅slug-mol⁻¹"
+@unitdim molarmass IPS "slinch-slinch-mol⁻¹"
 @unitdim force FPS "pdl"
 @unitdim pressure FPS "pdl⋅ft⁻²"
 @unitdim density British "slug⋅ft⁻³"
 @unitdim density IPS "slinch⋅in⁻³"
 @unitdim density GravitationalMetric "hyl⋅m⁻³"
-#@unitdim density GravitationalSI2019 "hyl⋅m⁻³"
-#@unitdim density GravitationalMeridian "ehyl⋅m⁻³"
 
 @unitdim L Rydberg "a₀"
 @unitdim inv(L) Rydberg "a₀⁻¹"
+@unitdim area Rydberg "a₀²"
+@unitdim fuelefficiency Rydberg "a₀⁻²"
+@unitdim volume Rydberg "a₀³"
+@unitdim numberdensity Rydberg "a₀⁻³"
 @unitdim Q Electronic "𝘦"
 @unitdim Q Stoney "𝘦"
 @unitdim Q Schrodinger "𝘦"
@@ -831,6 +874,14 @@ end
 @unitdim inv(Q) Stoney "𝘦⁼¹"
 @unitdim inv(Q) Schrodinger "𝘦⁼¹"
 @unitdim inv(Q) CosmologicalQuantum "𝘦ₙ⁼¹"
+@unitdim Q^2 Electronic "𝘦²"
+@unitdim Q^2 Stoney "𝘦²"
+@unitdim Q^2 Schrodinger "𝘦²"
+@unitdim Q^2 CosmologicalQuantum "𝘦ₙ²"
+@unitdim inv(Q^2) Electronic "𝘦⁼²"
+@unitdim inv(Q^2) Stoney "𝘦⁼²"
+@unitdim inv(Q^2) Schrodinger "𝘦⁼²"
+@unitdim inv(Q^2) CosmologicalQuantum "𝘦ₙ⁼²"
 
 for U ∈ (:FPS,:IPS,:British,:English,:Survey)
     @eval begin
