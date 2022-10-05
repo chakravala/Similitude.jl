@@ -275,7 +275,7 @@ const stokes = Gauss(𝟏,diffusivity)
 const katal = Metric(𝟏,catalysis)
 const mpge = mile(Metric)/gasgallon(Metric)
 const curie = Constant(37)*giga*hertz
-const sievert = Metric(𝟏,energy/M)
+const gray = Metric(𝟏,energy/M)
 #const rem = centi*sievert
 const roentgen = ESU(𝟏,chargedensity)(Metric)/Metric(Constant(1.293),density)
 const rayl = Metric(𝟏,specificimpedance)
@@ -297,7 +297,7 @@ evaldim(::typeof(time)) = T
 evaldim(::typeof(molarmass)) = M/N
 evaldim(::typeof(luminousefficacy)) = T*J/F/L
 evaldim(::typeof(UnitSystems.solidangle)) = A^2
-evaldim(unit::Dimension) = unit
+evaldim(unit::Constant) = unit
 evaldim(unit::Symbol) = evaldim(eval(unit))
 evaldim(unit::Symbol,U) = evaldim(evaldim(unit),U)
 evaldim(unit,U) = normal(U)(unit)
@@ -354,77 +354,77 @@ $(dimlist(eval(sys)))
 # F,M,L,T, Q, Θ, N,  J,A,R, C
 
 function (u::typeof(normal(MetricEngineering)))(d::Group)
-    Group(Values(d.v[1],d.v[2],d.v[3],d.v[4],d.v[5],d.v[6],d.v[7],d.v[8],d.v[9],0,0))
+    Group(Values(d.v[1],d.v[2],d.v[3],d.v[4],d.v[5],d.v[6],d.v[7],d.v[8],d.v[9],0,0),1,Val(:USQ))
 end
 function (u::typeof(normal(GravitationalMetric)))(d::Group)
-    Group(Values(d.v[1]+d.v[2],0,d.v[3]-d.v[2],d.v[4]+2(d.v[2]),d.v[5],d.v[6],d.v[7],d.v[8],0,0,0))
+    Group(Values(d.v[1]+d.v[2],0,d.v[3]-d.v[2],d.v[4]+2(d.v[2]),d.v[5],d.v[6],d.v[7],d.v[8],0,0,0),1,Val(:USQ))
 end
 function (u::typeof(normal(Metric)))(d::Group)
-    Group(Values(0,d.v[1]+d.v[2],d.v[1]+d.v[3],d.v[4]-2(d.v[1]),d.v[5],d.v[6],d.v[7],d.v[8],0,0,0))
+    Group(Values(0,d.v[1]+d.v[2],d.v[1]+d.v[3],d.v[4]-2(d.v[1]),d.v[5],d.v[6],d.v[7],d.v[8],0,0,0),1,Val(:USQ))
 end
 function (u::typeof(normal(MetricDegree)))(d::Group)
-    Group(Values(0,d.v[1]+d.v[2],d.v[1]+d.v[3],d.v[4]-2(d.v[1]),d.v[5],d.v[6],d.v[7],d.v[8],d.v[9],0,0))
+    Group(Values(0,d.v[1]+d.v[2],d.v[1]+d.v[3],d.v[4]-2(d.v[1]),d.v[5],d.v[6],d.v[7],d.v[8],d.v[9],0,0),1,Val(:USQ))
 end
 #=function (u::typeof(normal(Astronomical)))(d::Group)
-    Group(Values(d.v[1],0,d.v[3]+3d.v[2],d.v[4]-2d.v[2],d.v[5],d.v[6],d.v[7],d.v[8],d.v[9],0,0))
+    Group(Values(d.v[1],0,d.v[3]+3d.v[2],d.v[4]-2d.v[2],d.v[5],d.v[6],d.v[7],d.v[8],d.v[9],0,0),1,Val(:USQ))
 end=#
 
 function (u::typeof(normal(Gauss)))(d::Group{<:Integer})
-    Group(Values(0,d.v[1]+d.v[2]+d.v[5]//2,d.v[1]+d.v[3]+(3//2)*d.v[5]+d.v[11],d.v[4]-2(d.v[1])-d.v[5]-d.v[11],0,d.v[6],d.v[7],d.v[8],0,0,0))
+    Group(Values(0,d.v[1]+d.v[2]+d.v[5]//2,d.v[1]+d.v[3]+(3//2)*d.v[5]+d.v[11],d.v[4]-2(d.v[1])-d.v[5]-d.v[11],0,d.v[6],d.v[7],d.v[8],0,0,0),1,Val(:USQ))
 end
 function (u::typeof(normal(ESU)))(d::Group{<:Integer})
-    Group(Values(0,d.v[1]+d.v[2]+d.v[5]//2,d.v[1]+d.v[3]+(3//2)*d.v[5],d.v[4]-2(d.v[1])-d.v[5],0,d.v[6],d.v[7],d.v[8],0,0,0))
+    Group(Values(0,d.v[1]+d.v[2]+d.v[5]//2,d.v[1]+d.v[3]+(3//2)*d.v[5],d.v[4]-2(d.v[1])-d.v[5],0,d.v[6],d.v[7],d.v[8],0,0,0),1,Val(:USQ))
 end
 function (u::typeof(normal(EMU)))(d::Group{<:Integer})
-    Group(Values(0,d.v[1]+d.v[2]+d.v[5]//2,d.v[1]+d.v[3]+d.v[5]//2,d.v[4]-2(d.v[1]),0,d.v[6],d.v[7],d.v[8],0,0,0))
+    Group(Values(0,d.v[1]+d.v[2]+d.v[5]//2,d.v[1]+d.v[3]+d.v[5]//2,d.v[4]-2(d.v[1]),0,d.v[6],d.v[7],d.v[8],0,0,0),1,Val(:USQ))
 end
 
 function (u::typeof(normal(Gauss)))(d::Group)
-    Group(Values(0,d.v[1]+d.v[2]+d.v[5]/2,d.v[1]+d.v[3]+(3/2)*d.v[5]+d.v[11],d.v[4]-2(d.v[1])-d.v[5]-d.v[11],0,d.v[6],d.v[7],d.v[8],0,0,0))
+    Group(Values(0,d.v[1]+d.v[2]+d.v[5]/2,d.v[1]+d.v[3]+(3/2)*d.v[5]+d.v[11],d.v[4]-2(d.v[1])-d.v[5]-d.v[11],0,d.v[6],d.v[7],d.v[8],0,0,0),1,Val(:USQ))
 end
 function (u::typeof(normal(ESU)))(d::Group)
-    Group(Values(0,d.v[1]+d.v[2]+d.v[5]/2,d.v[1]+d.v[3]+(3/2)*d.v[5],d.v[4]-2(d.v[1])-d.v[5],0,d.v[6],d.v[7],d.v[8],0,0,0))
+    Group(Values(0,d.v[1]+d.v[2]+d.v[5]/2,d.v[1]+d.v[3]+(3/2)*d.v[5],d.v[4]-2(d.v[1])-d.v[5],0,d.v[6],d.v[7],d.v[8],0,0,0),1,Val(:USQ))
 end
 function (u::typeof(normal(EMU)))(d::Group)
-    Group(Values(0,d.v[1]+d.v[2]+d.v[5]/2,d.v[1]+d.v[3]+d.v[5]/2,d.v[4]-2(d.v[1]),0,d.v[6],d.v[7],d.v[8],0,d.v[10],0))
+    Group(Values(0,d.v[1]+d.v[2]+d.v[5]/2,d.v[1]+d.v[3]+d.v[5]/2,d.v[4]-2(d.v[1]),0,d.v[6],d.v[7],d.v[8],0,d.v[10],0),1,Val(:USQ))
 end
 
 function (u::typeof(normal(Stoney)))(d::Group)
-    Group(Values(0,d.v[1]+d.v[2]+d.v[6]+d.v[7],0,d.v[3]+d.v[4]-d.v[1],d.v[5],0,0,d.v[8],0,0,0))
+    Group(Values(0,d.v[1]+d.v[2]+d.v[6]+d.v[7],0,d.v[3]+d.v[4]-d.v[1],d.v[5],0,0,d.v[8],0,0,0),1,Val(:USQ))
 end
 function (u::typeof(normal(Electronic)))(d::Group)
-    Group(Values(0,0,0,d.v[3]+d.v[4]-d.v[1]-d.v[8],d.v[5],0,0,0,0,0,0))
+    Group(Values(0,0,0,d.v[3]+d.v[4]-d.v[1]-d.v[8],d.v[5],0,0,0,0,0,0),1,Val(:USQ))
 end
 function (u::typeof(normal(QCDoriginal)))(d::Group)
-    Group(Values(0,d.v[2]+d.v[6]+d.v[7]+2(d.v[1]+d.v[8])-d.v[3]-d.v[4],0,0,d.v[5],0,0,0,0,0,0))
+    Group(Values(0,d.v[2]+d.v[6]+d.v[7]+2(d.v[1]+d.v[8])-d.v[3]-d.v[4],0,0,d.v[5],0,0,0,0,0,0),1,Val(:USQ))
 end
 function (u::typeof(normal(Planck)))(d::Group)
-    Group(Values(0,d.v[2]+d.v[6]+d.v[7]+2(d.v[1]+d.v[8])-d.v[3]-d.v[4],0,0,0,0,0,0,0,0,0))
+    Group(Values(0,d.v[2]+d.v[6]+d.v[7]+2(d.v[1]+d.v[8])-d.v[3]-d.v[4],0,0,0,0,0,0,0,0,0),1,Val(:USQ))
 end
 function (u::typeof(normal(PlanckGauss)))(d::Group)
-    Group(Values(0,d.v[2]+d.v[6]+d.v[7]+2(d.v[1]+d.v[8])-d.v[3]-d.v[4],0,0,d.v[5],0,0,0,0,0,0))
+    Group(Values(0,d.v[2]+d.v[6]+d.v[7]+2(d.v[1]+d.v[8])-d.v[3]-d.v[4],0,0,d.v[5],0,0,0,0,0,0),1,Val(:USQ))
 end
 function (u::typeof(normal(Natural)))(d::Group)
-    Group(Values(0,0,0,0,0,0,0,0,0,0,0))
+    Group(Values(0,0,0,0,0,0,0,0,0,0,0),1,Val(:USQ))
 end
 function (u::typeof(normal(NaturalGauss)))(d::Group)
-    Group(Values(0,0,0,0,d.v[5],0,0,0,0,0,0))
+    Group(Values(0,0,0,0,d.v[5],0,0,0,0,0,0),1,Val(:USQ))
 end
 
 function (u::typeof(normal(Rydberg)))(d::Group)
-    Group(Values(0,d.v[1]+d.v[2]+d.v[7],d.v[1]+d.v[3],d.v[4]-d.v[6]+2(d.v[8]-d.v[1]),d.v[5],0,0,0,0,0,0))
+    Group(Values(0,d.v[1]+d.v[2]+d.v[7],d.v[1]+d.v[3],d.v[4]-d.v[6]+2(d.v[8]-d.v[1]),d.v[5],0,0,0,0,0,0),1,Val(:USQ))
 end
 function (u::typeof(normal(Hartree)))(d::Group)
-    Group(Values(0,0,d.v[3]+2(d.v[4]-d.v[6])-3(d.v[1])-4(d.v[8]),0,d.v[5],0,0,0,0,0,0))
+    Group(Values(0,0,d.v[3]+2(d.v[4]-d.v[6])-3(d.v[1])-4(d.v[8]),0,d.v[5],0,0,0,0,0,0),1,Val(:USQ))
 end
 function (u::typeof(normal(Hubble)))(d::Group)
-    Group(Values(0,0,0,d.v[3]+d.v[4]-d.v[1]-d.v[8],d.v[5],0,0,0,0,0,0))
+    Group(Values(0,0,0,d.v[3]+d.v[4]-d.v[1]-d.v[8],d.v[5],0,0,0,0,0,0),1,Val(:USQ))
 end
 function (u::typeof(normal(Cosmological)))(d::Group)
-    Group(Values(0,d.v[1]+d.v[2]+d.v[6]+d.v[7],0,d.v[3]+d.v[4]-d.v[1],d.v[5],0,0,d.v[8],0,0,0))
+    Group(Values(0,d.v[1]+d.v[2]+d.v[6]+d.v[7],0,d.v[3]+d.v[4]-d.v[1],d.v[5],0,0,d.v[8],0,0,0),1,Val(:USQ))
 end
 function (u::typeof(normal(CosmologicalQuantum)))(d::Group)
-    Group(Values(0,d.v[2]+d.v[6]+d.v[7]+2(d.v[1]+d.v[8])-d.v[3]-d.v[4],0,0,d.v[5],0,0,0,0,0,0))
+    Group(Values(0,d.v[2]+d.v[6]+d.v[7]+2(d.v[1]+d.v[8])-d.v[3]-d.v[4],0,0,d.v[5],0,0,0,0,0,0),1,Val(:USQ))
 end
 
 export @unitdim, @unitgroup
@@ -897,6 +897,7 @@ for U ∈ (:FPS,:British,:English,:Survey)
     end
 end
 
+if haskey(ENV,"UNITDOCS")
 @doc """
 $(convertext(:length,"planck(U,S)/mass(U,S)/speed(U,S)"))
 
@@ -975,3 +976,4 @@ julia> expdb(decibel(Metric))
 $(expdb(decibel(Metric)))
 ```
 """ decibel
+end

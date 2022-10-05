@@ -26,9 +26,19 @@ import UnitSystems: Systems, Dimensionless, Constants, Physics, Convert, Derived
 const dir = dirname(pathof(UnitSystems))
 
 using LinearAlgebra
-import AbstractTensors: TupleVector, Values, value
+import AbstractTensors: TupleVector, Variables, Values, value
 
-include("group.jl")
+import FieldConstants: param, Constant
+import FieldAlgebra
+import FieldAlgebra: showgroup, factorize, valueat, product, coefprod, makeint, measure
+import FieldAlgebra: AbstractModule, AbelianGroup, Group, LogGroup, ExpGroup
+import FieldAlgebra: value, isonezero, islog, base
+#import FieldAlgebra: coef, coefprod, checkint, checkints, promoteint, promoteints, expos, chars,  makeint, findpower, latexpo, printexpo, printdims, printnum, showgroup, showfun, valueat
+
+macro group(args...)
+    FieldAlgebra.group(args...)
+end
+
 include("dimension.jl")
 include("constant.jl")
 
@@ -38,10 +48,10 @@ printdims(io::IO,x::Group{T,vals},u::UnitSystem) where T = printdims(io,x,basis)
 printdims(io::IO,x::Group{T,dims}) where T = printdims(io,x,isq)
 printdims(io::IO,x::Group{T,vals}) where T = printdims(io,x,basis)
 
-logdb(x::Dimension{D}) where D = Dimension{logdb(D)}()
+#logdb(x::Constant{D}) where D = Constant{logdb(D)}()
 logdb(x::Quantity{D,U}) where {D,U} = Quantity{logdb(D),U}(logdb(x.v))
 
-@pure UnitSystems.unit(x::Dimension,y=1) = x
+@pure UnitSystems.unit(x::Group{:USQ},y=1) = x
 @pure UnitSystems.unit(x::AbelianGroup,y=1) = x
 @pure UnitSystems.unit(x::ConvertUnit,y=1) = x
 
@@ -56,7 +66,7 @@ end
 @pure ratio_calc(D::LogGroup{B},U,S) where B = log(B,ratio_calc(value(D),U,S))
 @pure ratio_calc(D::LogGroup{ℯ},U,S) = log(ratio_calc(value(D),U,S))
 @pure ratio_calc(D::ExpGroup{ℯ},U,S) = exp(ratio_calc(value(D),U,S))
-@pure ratio(::Dimension{D},U,S) where D = ratio_calc(UnitSystem(D),normal(U),normal(S))
+@pure ratio(::Constant{D},U,S) where D = ratio_calc(UnitSystem(D),normal(U),normal(S))
 @pure function ratio_calc(D::Group,U,S)
     Constant(
     UnitSystems.boltzmann(U,S)^D.v[1]*
@@ -80,7 +90,7 @@ normal(x::Quantity) = quantity(x)
 (q::Quantity{D,U})(s::UnitSystem) where {D,U} = (S=normal(s); Quantity{D,S}(q.v*ratio(D,U,S)))
 
 function Quantity(u::UnitSystem)
-    U = Constant(u); t = isone(normal(UnitSystems.boltzmann(U)))
+    U = constant(u); t = isone(normal(UnitSystems.boltzmann(U)))
     kB = Quantity{F*L/Θ,U}(UnitSystems.boltzmann(U))
     ħ = Quantity{F*L*T/A,U}(UnitSystems.planckreduced(U))
     c = Quantity{L/T,U}(UnitSystems.lightspeed(U))
@@ -125,9 +135,9 @@ end
 const gravityforce = acceleration/specificforce
 
 @doc """
-    (D::Dimension)(U::UnitSystem,S::UnitSystem) = ConvertUnit{D,U,S}()
+    (D::Constant)(U::UnitSystem,S::UnitSystem) = ConvertUnit{D,U,S}()
 
-Constant for unit conversion for `D::Dimension` from `U::UnitSystem` to `S::UnitSystem`.
+Constant for unit conversion for `D::Constant` from `U::UnitSystem` to `S::UnitSystem`.
 ```Julia
 julia> energy(Metric,CGS)
 $(energy(Metric,CGS))
@@ -139,9 +149,9 @@ There still exists further opportunity to expand on the implementation of `Conve
 """ ConvertUnit
 
 @doc """
-    (U::UnitSystem)(v::Number, D::Dimension) ↦ Quantity(D,U,v) = Quantity{D,U}(v)
+    (U::UnitSystem)(v::Number, D::Constant) ↦ Quantity(D,U,v) = Quantity{D,U}(v)
 
-Numerical `Quantity` having value `v` with `D::Dimension` specified in `U::UnitSystem`.
+Numerical `Quantity` having value `v` with `D::Constant` specified in `U::UnitSystem`.
 ```Julia
 julia> Metric(1,energy)
 $(Metric(1,energy))
@@ -149,7 +159,7 @@ $(Metric(1,energy))
 julia> English(1,energy)
 $(English(1,energy))
 ```
-An alternate syntax `Quantity(D::Dimension, U::UnitSystem, v::Number)` is also available as standard syntax.
+An alternate syntax `Quantity(D::Constant, U::UnitSystem, v::Number)` is also available as standard syntax.
 When `using UnitSystems` instead of `using Similitude`, this same syntax can be written so that code doesn't need to be changed while the output is generated.
 """ Quantity
 
@@ -173,10 +183,10 @@ for dim ∈ (:angle, :length, :time)
         Base.:^(a::typeof($dim),b::Number) = evaldim(a)^b
         Base.:^(a::typeof($dim),b::Integer) = evaldim(a)^b
         Base.:^(a::typeof($dim),b::Rational) = evaldim(a)^b
-        Base.:*(a::typeof($dim),b::Dimension) = evaldim(a)*b
-        Base.:/(a::typeof($dim),b::Dimension) = evaldim(a)/b
-        Base.:*(a::Dimension,b::typeof($dim)) = a*evaldim(b)
-        Base.:/(a::Dimension,b::typeof($dim)) = a/evaldim(b)
+        Base.:*(a::typeof($dim),b::Constant) = evaldim(a)*b
+        Base.:/(a::typeof($dim),b::Constant) = evaldim(a)/b
+        Base.:*(a::Constant,b::typeof($dim)) = a*evaldim(b)
+        Base.:/(a::Constant,b::typeof($dim)) = a/evaldim(b)
         Base.:*(a::Number,b::typeof($dim)) = a*evaldim(b)
         Base.:*(a::typeof($dim),b::Number) = evaldim(a)*b
         Base.:/(a::Number,b::typeof($dim)) = a*inv(evaldim(b))
@@ -190,6 +200,7 @@ for dim ∈ (:angle, :length, :time)
     end
 end
 
+if haskey(ENV,"UNITDOCS")
 include("$dir/kinematicdocs.jl")
 include("$dir/electromagneticdocs.jl")
 include("$dir/thermodynamicdocs.jl")
@@ -197,13 +208,11 @@ include("$dir/physicsdocs.jl")
 include("$dir/systems.jl")
 
 @doc """
-    Dimension{D} <: AbstractModule
-
-Physical `Dimension` represented by `Group` element `D`.
+Physical dimension `Constant` represented by `Group` element `D`.
 ```Julia
 F, M, L, T, Q, Θ, N, J, A, R, C
 ```
-Operations on `Dimension` are closed (`*`, `/`, `+`, `-`, `^`).
+Operations on `Constant` are closed (`*`, `/`, `+`, `-`, `^`).
 ```Julia
 julia> force(Unified)
 $(force(Unified))
@@ -238,13 +247,14 @@ $(rationalization(Unified))
 julia> lorentz(Unified)
 $(lorentz(Unified))
 ```
-Derived `Dimension` can be obtained from multiplicative base of 11 fundamental `Dimension` symbols corresponding to `force`, `mass`, `length`, `time`, `charge`, `temperature`, `molaramount`, `luminousflux`, `angle`, `demagnetizingfactor`, and a `nonstandard` dimension.
+Derived dimension can be obtained from multiplicative base of 11 fundamental dimension symbols corresponding to `force`, `mass`, `length`, `time`, `charge`, `temperature`, `molaramount`, `luminousflux`, `angle`, `demagnetizingfactor`, and a `nonstandard` dimension.
 
 Mechanics: `angle`, `$(listext(Kinematic))`, `$(listext(Mechanical))`;
 Electromagnetics: `$(listext(Electromagnetic))`;
 Thermodynamics: `$(listext(Thermodynamic))`,
 `$(listext(Molar))`, `$(listext(Photometric))`.
-""" Dimension
+""" USQ
+export USQ
 
 @doc """
     Unified = UnitSystem(...) # Unified System of Quantities (USQ)
@@ -287,5 +297,6 @@ julia> gravity(Unified) # gravityforce
 $(gravity(Unified))
 ```
 """ Unified
+end
 
 end # module

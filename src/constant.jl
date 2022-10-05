@@ -14,79 +14,38 @@
 
 import UnitSystems: isconstant
 
-include("$dir/constant.jl")
+using FieldConstants
+import FieldConstants: Constant
 
-@pure factorize(x,a,b,c,d,e,f,g,h) = Similitude.factorize(x,param(a),param(b),param(c),param(d),param(e),param(f),param(g),param(h))
+@pure constant(N::Number) = 𝟏*N
+@pure constant(D::Constant) = D
+@pure constant(::typeof(MathConstants.φ)) = φ
+@pure constant(::typeof(MathConstants.γ)) = Constant(valueat(35,vals,:Constants))
+@pure constant(::typeof(ℯ)) = Constant(valueat(36,vals,:Constants))
+@pure constant(::typeof(π)) = τ/𝟐
+@pure constant(::typeof(exp)) = constant(ℯ)
+@pure constant(N::Float64) = Constant(factorize(N,Val(:Constants)))
+@pure constant(N::Int) = Constant(factorize(N,τ,Val(:Constants)))
+@pure constant(N::AbelianGroup) = Constant{N}()
 
-@pure Constant(N::Number) = 𝟏*N
-@pure Constant(D::Dimension) = D
-@pure Constant(::typeof(MathConstants.φ)) = φ
-@pure Constant(::typeof(MathConstants.γ)) = Constant(valueat(35,vals))
-@pure Constant(::typeof(ℯ)) = Constant(valueat(36,vals))
-@pure Constant(::typeof(π)) = τ/𝟐
-@pure Constant(::typeof(exp)) = Constant(ℯ)
-@pure Constant(N::Float64) = Constant(factorize(N,τ,𝟐,𝟑,𝟓,𝟕,𝟏𝟏,𝟏𝟗,𝟒𝟑))
-@pure Constant(N::Int) = Constant(factorize(N,τ,𝟐,𝟑,𝟓,𝟕,𝟏𝟏,𝟏𝟗,𝟒𝟑))
-@pure Constant(N::AbelianGroup) = Constant{N}()
-
-#printone(io::IO,::Val{vals}) = print(io, '𝟏')
-Base.show(io::IO,x::Constant{N}) where N  = (showgroup(io,N,Natural,'𝟏'); print(io, " = ", constant(N)))
-
-@pure constant(::Constant{N}) where N = constant(N)
-constant(d::LogGroup{B},C=UnitSystems.Universe) where B = log(B,constant(value(d),C))
-constant(d::ExpGroup{B},C=UnitSystems.Universe) where B = B^constant(value(d),C)
-
-UnitSystems.unit(x::Constant,y=1) = x
-@pure promoteint(v::Constant) = isone(v) ? 1 : v
-
-Base.:^(::UnitSystems.Constant{A},::Constant{B}) where {A,B} = Constant{A^B}()
-Base.:*(::UnitSystems.Constant{A},b::Constant) where A = Constant(A)*b
-Base.:*(a::Constant,::UnitSystems.Constant{B}) where B = a*Constant(B)
-Base.:/(::UnitSystems.Constant{A},b::Constant) where A = Constant(A)/b
-Base.:/(a::Constant,::UnitSystems.Constant{B}) where B = a/Constant(B)
-
-#Base.:*(a::Constant{N},b::Dimension{D}) where {N,D} = Dimension{N*D}()
-#Base.:*(a::Dimension{D},b::Constant{N}) where {D,N} = Dimension{D*N}()
-Base.:/(a::Constant,b::Dimension) = a*inv(b)
-Base.:/(a::Dimension,b::Constant) = a*inv(b)
-
-coefprod(a::Constant,b) = a*Constant(b)
-coefprod(a,b::Constant) = Constant(a)*b
-coefprod(a::Constant,b::Constant) = a*b
-
-Base.:+(a::Constant,b::Similitude.Quantity{D,U}) where {D,U} = U(D)==𝟙 ? Similitude.Quantity{D,U}(a+b.v) : throw(error("$(U(D)) ≠ 𝟙 "))
-Base.:+(a::Similitude.Quantity{D,U},b::Constant) where {D,U} = U(D)==𝟙 ? Similitude.Quantity{D,U}(a.v+b) : throw(error("$(U(D)) ≠ 𝟙 "))
-Base.:-(a::Constant,b::Similitude.Quantity{D,U}) where {D,U} = U(D)==𝟙 ? Similitude.Quantity{D,U}(a-b.v) : throw(error("$(U(D)) ≠ 𝟙 "))
-Base.:-(a::Similitude.Quantity{D,U},b::Constant) where {D,U} = U(D)==𝟙 ? Similitude.Quantity{D,U}(a.v-b) : throw(error("$(U(D)) ≠ 𝟙 "))
-Base.:*(a::Constant,b::Similitude.Quantity{D,U}) where {D,U} = Similitude.Quantity{D,U}(a*b.v)
-Base.:*(a::Similitude.Quantity{D,U},b::Constant) where {D,U} = Similitude.Quantity{D,U}(a.v*b)
-Base.:/(a::Constant,b::Similitude.Quantity{D,U}) where {D,U} = Similitude.Quantity{inv(D),U}(a/b.v)
-Base.:/(a::Similitude.Quantity{D,U},b::Constant) where {D,U} = Similitude.Quantity{D,U}(a.v/b)
-
-phys(j,k=vals) = Constant(valueat(j,k))
-
-for i ∈ 1:vals-11
-    @eval begin
-        export $(Symbol(basis[i]))
-        const $(Symbol(basis[i])) = Constant(valueat($i,vals))
-    end
-end
+#constant(d::LogGroup{B},C=UnitSystems.Universe) where B = log(B,constant(value(d),C))
+#constant(d::ExpGroup{B},C=UnitSystems.Universe) where B = B^constant(value(d),C)
 
 export factorize
 
-const golden = Constant(valueat(34,vals))
-const eulergamma = Constant(valueat(35,vals))
-const tau = Constant(valueat(37,vals))
-const 𝟏 = Constant(valueat(0,vals))
-const two = Constant(valueat(38,vals))
-const three = Constant(valueat(39,vals))
-const five = Constant(valueat(40,vals))
-const seven = Constant(valueat(41,vals))
-const eleven = Constant(valueat(42,vals))
-const nineteen = Constant(valueat(43,vals))
-const fourtythree = Constant(valueat(44,vals))
+const golden = phys(34)
+const eulergamma = phys(35)
+const tau = phys(37)
+const 𝟏 = phys(0)
+const two = phys(38)
+const three = phys(39)
+const five = phys(40)
+const seven = phys(41)
+const eleven = phys(42)
+const nineteen = phys(43)
+const fourtythree = phys(44)
 const 𝟐,𝟑,𝟓,𝟕,𝟏𝟏,𝟏𝟗,𝟒𝟑 = two,three,five,seven,eleven,nineteen,fourtythree
 const zetta,zepto,yotta,yocto = (𝟐*𝟓)^21, (𝟐*𝟓)^-21, (𝟐*𝟓)^24, (𝟐*𝟓)^-24
-const αinv,φ,τ = inv(α),golden,tau
+const αinv = inv(α)
 const RK1990,KJ1990 = RK90,KJ90
 const RK2014,KJ2014 = RK,KJ

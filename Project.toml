@@ -1,15 +1,19 @@
 name = "Similitude"
 uuid = "d70e672a-ff44-4dfc-8031-4cc812d84922"
 authors = ["Michael Reed"]
-version = "0.2.5"
+version = "0.2.6"
 
 [deps]
 UnitSystems = "3a241a3c-2137-41aa-af5e-1388e404ca09"
+FieldAlgebra = "0b62d163-fd1d-4060-a953-4385d03545e2"
+FieldConstants = "73d362c4-b7ec-495f-a538-f22f12d4d8ae"
 AbstractTensors = "a8e43f4a-99b7-5565-8bf1-0165161caaea"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 
 [compat]
 AbstractTensors = "0.7"
+FieldConstants = "0.1"
+FieldAlgebra = "0.1"
 UnitSystems = "0.3.3"
 julia = "1"
 
