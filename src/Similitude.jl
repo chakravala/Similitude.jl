@@ -21,7 +21,7 @@ module Similitude
 
 import Base: @pure
 import UnitSystems
-import UnitSystems: UnitSystem, universe, Coupling, logdb, expdb, dB
+import UnitSystems: UnitSystem, universe, Coupling, logdb, expdb, dB, cache
 import UnitSystems: Systems, Dimensionless, Constants, Physics, Convert, Derived
 const dir = dirname(pathof(UnitSystems))
 
@@ -90,7 +90,7 @@ normal(x::Quantity) = quantity(x)
 (q::Quantity{D,U})(s::UnitSystem) where {D,U} = (S=normal(s); Quantity{D,S}(q.v*ratio(D,U,S)))
 
 function Quantity(u::UnitSystem)
-    U = constant(u); t = isone(normal(UnitSystems.boltzmann(U)))
+    U = constant(u)
     kB = Quantity{F*L/Θ,U}(UnitSystems.boltzmann(U))
     ħ = Quantity{F*L*T/A,U}(UnitSystems.planckreduced(U))
     c = Quantity{L/T,U}(UnitSystems.lightspeed(U))
@@ -110,7 +110,7 @@ function Quantity(u::UnitSystem)
     v = UnitSystems.eleven(U)
     w = UnitSystems.nineteen(U)
     q = UnitSystems.fourtythree(U)
-    UnitSystem(kB,ħ,c,μ0,mₑ,Mᵤ,Kcd,θ,λ,αL,g₀,Universe,τ,x,y,z,u,v,w,q)
+    unitsystem(kB,ħ,c,μ0,mₑ,Mᵤ,Kcd,θ,λ,αL,g₀,Universe,τ,x,y,z,u,v,w,q)
 end
 
 const LD,JD = Constant(384399)*(𝟐*𝟓)^3,Constant(778479)*(𝟐*𝟓)^6
@@ -121,6 +121,7 @@ include("$dir/initdata.jl")
 
 const Unified = Quantity(UnitSystem(F*L/Θ,F*L*T/A,L/T,F*T*T*C*C/(Q*Q)/R,M,M/N,J*T/F/L,A,R,inv(C),M*L/(F*T*T),Universe,τ,𝟐,𝟑,𝟓,𝟕,𝟏𝟏,𝟏𝟗,𝟒𝟑))
 dimtext(::typeof(normal(Unified))) = Values("kB","ħ","𝘤","μ₀","mₑ","Mᵤ","Kcd","ϕ","λ","αL","g₀")
+dimlatex(::typeof(normal(Unified))) = Values("\\text{k}_\\text{B}","\\hbar","\\text{c}","\\mu_0","\\text{m}_\\text{e}","\\text{M}_\\text{u}","\\text{K}_\\text{cd}","\\phi","\\lambda","\\alpha_\\text{L}","\\text{g}_0")
 
 export Unified
 unitname(::typeof(normal(Unified))) = "Unified"
@@ -128,7 +129,7 @@ unitname(::typeof(normal(Unified))) = "Unified"
 (u::UnitSystem)(d::Group) = normal(Metric)(d)
 
 for unit ∈ Convert
-    if unit ∉ (:length,:time,:angle,:molarmass,:luminousefficacy)
+    if unit ∉ (:dimensionless,:length,:time,:angle,:molarmass,:luminousefficacy)
         @eval const  $unit = dimensions(UnitSystems.$unit(UnitSystems.Natural,Natural))
     end
 end
@@ -162,6 +163,8 @@ $(English(1,energy))
 An alternate syntax `Quantity(D::Constant, U::UnitSystem, v::Number)` is also available as standard syntax.
 When `using UnitSystems` instead of `using Similitude`, this same syntax can be written so that code doesn't need to be changed while the output is generated.
 """ Quantity
+
+dimlatex(U) = Values("\\text{F}","\\text{M}","\\text{L}","\\text{T}","\\text{Q}","\\Theta","\\text{N}","\\text{J}","\\text{A}","\\text{R}","\\text{C}")
 
 include("derived.jl")
 
@@ -197,6 +200,45 @@ for dim ∈ (:angle, :length, :time)
             Base.:*(a::typeof($dim),b::typeof($dim2)) = evaldim(a)*evaldim(b)
             Base.:/(a::typeof($dim),b::typeof($dim2)) = evaldim(a)*evaldim(b)
         end
+    end
+end
+
+param1(x::Constant) = param(x)
+param1(x) = x
+compare(a::Symbol,b::Symbol,U) = param1(evaldim(a,U)) == param1(evaldim(b,U))
+Base.:/(U::UnitSystem,::typeof(~)) = quotient(U)
+
+export quotient
+function quotient(U)
+    len = length(Convert)
+    out = [:x=>Symbol[] for i ∈ 1:len]
+    for i ∈ 1:len
+        x = Convert[i]
+        out[i] = x=>Convert[findall(compare.(Ref(x),Convert,Ref(U)))]
+    end
+    i,num = 1,length(out)
+    while i ≤ num
+        for x ∈ out[i].second[2:end]
+            j = findfirst(z->z==x,getproperty.(out,:first))
+            if !isnothing(j) && j>i
+                deleteat!(out,j)
+                num -= 1
+            end
+        end
+        i += 1
+    end
+    [evaldim(x.first,U)=>x.second for x ∈ out]
+end
+
+function printquotient(U)
+    for x ∈ quotient(U)
+        print("    $(x.first) => ")
+        for j ∈ 1:length(x.second)
+            y = x.second[j]
+            print("$y ($(evaldim(y)))")
+            j<length(x.second) && print(", ")
+        end
+        println()
     end
 end
 

@@ -24,6 +24,10 @@ value(::Constant{D}) where D = value(D)
 showgroup(io::IO,x::Constant{D},u) where D = showgroup(io,D,dimtext(u),'𝟙')
 showgroup(io::IO,x,u,c) = showgroup(io,x,u)
 
+import FieldAlgebra: latexgroup
+latexgroup(io::IO,x::Constant{D},u) where D = latexgroup(io,D,dimlatex(u),"\\mathbb{1}")
+latexgroup(io::IO,x,u,c) = latexgroup(io,x,u)
+
 preferred(a,b) = a
 
 function Base.:+(a::Group{:USQ},b::Group{:USQ})
@@ -73,10 +77,17 @@ Base.:/(a::Group{:USQ},b::Group{:Constants}) = a*inv(b)
 const isq = Values('F','M','L','T','Q','Θ','N','J','A','R','C')
 const dims = length(isq)
 
-const 𝟙 = Constant(valueat(0,dims,:USQ))
+const dimensionless = Constant(valueat(0,dims,:USQ))
+const 𝟙 = dimensionless
 const USQ = Values(F,M,L,T,Q,Θ,N,J,A,R,C)
 const usq = USQ
+const usqlatex = Values("\\text{k}_\\text{B}","\\text{N}_\\text{A}","\\hbar","\\text{c}","\\text{e}","\\text{K}_\\text{cd}","\\Delta\\nu_\\text{Cs}","\\text{R}_{\\infty}","\\alpha","\\mu_\\text{eu}","\\mu_\\text{pu}","\\Omega_{\\Lambda}","\\text{H}_0","\\text{g}_0","\\text{a}_\\text{j}","\\text{au}","\\text{ft}","\\text{ft}_\\text{US}","\\text{lb}","\\text{T}_0","\\text{atm}","\\text{in}_\\text{Hg}","\\text{R}_\\text{K}^{90}","\\text{K}_\\text{J}^{90}","\\text{R}_\\text{K}","\\text{K}_\\text{J}","\\text{R}_\\text{u}","\\Omega_\\text{it}","\\text{V}_\\text{it}","\\text{k}_\\text{G}","\\text{m}_\\text{P}","\\text{GM}_\\text{E}","\\text{GM}_\\text{J}","\\varphi","\\gamma","e","\\tau","2","3","5","7","11","19","43")
 
+naturalunits(U) = [x=>x(U) for x ∈ Similitude.USQ]
+morphism(U) = [getproperty.(param.(U.(Similitude.usq)),:v)[j][i] for i ∈ 1:11, j ∈ 1:11]
+
+#FieldAlgebra.latext(::Group{:USQ}) = Values('F','M','L','Q',"\\Theta",'N','J','A','R','C')
+FieldAlgebra.latext(::Group{:Constants}) = usqlatex
 @group Constants begin
     kB = UnitSystems.kB
     NA = UnitSystems.NA
@@ -263,6 +274,8 @@ Base.:-(a::Constant,b::Quantity{D,U}) where {D,U} = U(D)==𝟙 ? Quantity{D,U}(a
 Base.:-(a::Quantity{D,U},b::Constant) where {D,U} = U(D)==𝟙 ? Quantity{D,U}(a.v-b) : throw(error("$(U(D)) ≠ 𝟙 "))
 Base.:*(a::Constant,b::Quantity{D,U}) where {D,U} = Quantity{D,U}(a*b.v)
 Base.:*(a::Quantity{D,U},b::Constant) where {D,U} = Quantity{D,U}(a.v*b)
+Base.:*(a::Group,b::Quantity{D,U}) where {D,U} = Quantity{D,U}(a*b.v)
+Base.:*(a::Quantity{D,U},b::Group) where {D,U} = Quantity{D,U}(a.v*b)
 #Base.:/(a::Constant,b::Quantity{D,U}) where {D,U} = Quantity{inv(D),U}(a/b.v)
 #Base.:/(a::Quantity{D,U},b::Constant) where {D,U} = Quantity{D,U}(a.v/b)
 
