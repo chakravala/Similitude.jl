@@ -26,10 +26,10 @@ import UnitSystems: Systems, Dimensionless, Constants, Physics, Convert, Derived
 const dir = dirname(pathof(UnitSystems))
 
 using LinearAlgebra
-import AbstractTensors: TupleVector, Variables, Values, value
 
 import FieldConstants: param, Constant
 import FieldAlgebra
+import FieldAlgebra: TupleVector, Variables, Values, value
 import FieldAlgebra: showgroup, factorize, valueat, product, coefprod, makeint, measure
 import FieldAlgebra: AbstractModule, AbelianGroup, Group, LogGroup, ExpGroup
 import FieldAlgebra: value, isonezero, islog, base
@@ -43,10 +43,10 @@ include("dimension.jl")
 include("constant.jl")
 
 dimtext(u) = isq
-printdims(io::IO,x::Group{T,dims},u::UnitSystem) where T = printdims(io,x,dimtext(normal(u)))
-printdims(io::IO,x::Group{T,vals},u::UnitSystem) where T = printdims(io,x,basis)
-printdims(io::IO,x::Group{T,dims}) where T = printdims(io,x,isq)
-printdims(io::IO,x::Group{T,vals}) where T = printdims(io,x,basis)
+printdims(io::IO,x::Group{T,dims},u::UnitSystem) where T = printdims(io,x.v,dimtext(normal(u)))
+printdims(io::IO,x::Group{T,vals},u::UnitSystem) where T = printdims(io,x.v,basis)
+printdims(io::IO,x::Group{T,dims}) where T = printdims(io,x.v,isq)
+printdims(io::IO,x::Group{T,vals}) where T = printdims(io,x.v,basis)
 
 #logdb(x::Constant{D}) where D = Constant{logdb(D)}()
 logdb(x::Quantity{D,U}) where {D,U} = Quantity{logdb(D),U}(logdb(x.v))
