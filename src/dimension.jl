@@ -18,10 +18,13 @@ import UnitSystems: listext, Kinematic, Mechanical, Electromagnetic, Thermodynam
 
 @pure Constant(D::Group) = Constant{D}()
 @pure dimension(::Constant{D}) where D = D
+@pure dimension(D) = D
 
 value(::Constant{D}) where D = value(D)
 
-showgroup(io::IO,x::Constant{D},u) where D = showgroup(io,D,dimtext(u),'𝟙')
+showgroup(io::IO,x::Constant{D},u::UnitSystem) where D = showgroup(io,D,dimtext(u),'𝟙')
+showgroup(io::IO,x::AbelianGroup,u::UnitSystem) = showgroup(io,x,dimtext(u),'𝟙')
+showgroup(io::IO,x::Group,u::UnitSystem) = showgroup(io,x,dimtext(u),'𝟙')
 showgroup(io::IO,x,u,c) = showgroup(io,x,u)
 
 import FieldAlgebra: latexgroup
@@ -66,6 +69,10 @@ Base.:+(a::Real,b::Group{:Constants}) = a+product(b)
 Base.:+(a::Group{:Constants},b::Real) = product(a)+b
 Base.:-(a::Real,b::Group{:Constants}) = a-product(b)
 Base.:-(a::Group{:Constants},b::Real) = product(a)-b
+Base.:+(a::Constant,b::Group{:Constants}) = param(a)+b
+Base.:+(a::Group{:Constants},b::Constant) = a+param(b)
+Base.:-(a::Constant,b::Group{:Constants}) = param(a)-b
+Base.:-(a::Group{:Constants},b::Constant) = a-param(b)
 
 Base.:*(a::Group{:Constants},b::Group{:USQ}) = Group(b.v,a*b.c,Val(:USQ))
 Base.:*(a::Group{:USQ},b::Group{:Constants}) = Group(a.v,a.c*b,Val(:USQ))
@@ -77,7 +84,11 @@ Base.:/(a::Group{:USQ},b::Group{:Constants}) = a*inv(b)
 const isq = Values('F','M','L','T','Q','Θ','N','J','A','R','C')
 const dims = length(isq)
 
-const dimensionless = Constant(valueat(0,dims,:USQ))
+const dimensionless = if CONSTDIM
+    Constant(valueat(0,dims,:USQ))
+else
+    valueat(0,dims,:USQ)
+end
 const 𝟙 = dimensionless
 const USQ = Values(F,M,L,T,Q,Θ,N,J,A,R,C)
 const usq = USQ
@@ -88,7 +99,7 @@ morphism(U) = [getproperty.(param.(U.(Similitude.usq)),:v)[j][i] for i ∈ 1:11,
 
 #FieldAlgebra.latext(::Group{:USQ}) = Values('F','M','L','Q',"\\Theta",'N','J','A','R','C')
 FieldAlgebra.latext(::Group{:Constants}) = usqlatex
-@group Constants begin
+@group2 Constants begin
     kB = UnitSystems.kB
     NA = UnitSystems.NA
     𝘩 = UnitSystems.𝘩
@@ -138,150 +149,194 @@ end
 Base.show(io::IO,x::Group{:Constants}) = showgroup(io,x,basis,'𝟏')
 @pure promoteint(v::Constant) = isone(v) ? 1 : v
 
-phys(j,k=vals) = Constant(valueat(j,k,:Constants))
+if CONSTVAL
+    phys(j,k=vals) = Constant(valueat(j,k,:Constants))
+else
+    phys(j,k=vals) = valueat(j,k,:Constants)
+end
 
 const basis = Values("kB", "NA", "𝘩", "𝘤", "𝘦", "Kcd", "ΔνCs", "R∞", "α", "μₑᵤ", "μₚᵤ", "ΩΛ", "H0", "g₀", "aⱼ", "au", "ft", "ftUS", "lb", "T₀", "atm", "inHg", "RK90", "KJ90", "RK", "KJ", "Rᵤ2014", "Ωᵢₜ", "Vᵢₜ", "kG", "mP", "GME", "GMJ", "φ", "γ", "ℯ", "τ", "2", "3", "5", "7", "11", "19","43")
 const vals = length(basis)
 
 # convertunit
 
-struct ConvertUnit{D,U,S} <: AbstractModule
-    @pure ConvertUnit{D,U,S}() where {D,U,S} = new{D,normal(U),normal(S)}()
+struct ConvertUnit{U,S,D} <: AbstractModule
+    v::D
+    @pure ConvertUnit{U,S}(v::D) where {U,S,D} = new{normal(U),normal(S),D}(v)
 end
 
-convertdim(::ConvertUnit{D,U,S}) where {D,U,S} = convertdim(D,U,S)
+dimensions(c::ConvertUnit) = c.v
+convertdim(c::ConvertUnit{U,S}) where {U,S} = convertdim(dimensions(c),U,S)
 convertdim(::Constant{D},U,S) where D = convertdim(D,U,S)
 dimconvert(x::T,d,u,s) where T = (isone(ratio(d,u,s)) ? zero(x) : x)::T
 convertdim(d::Group{:USQ,T},U,S) where T = Constant{Group{:USQ,T}(dimconvert.(d.v,usq,Ref(U),Ref(S)))}()
 
-function Base.show(io::IO,::ConvertUnit{D,U,S}) where {D,U,S}
-    d = convertdim(D,U,S)
-    print(io, ratio(D,U,S), " [")
+function Base.show(io::IO,c::ConvertUnit{U,S}) where {U,S}
+    d = convertdim(dimensions(c),U,S)
+    print(io, ratio(dimensions(c),U,S), " [")
     showgroup(io,S(d),S)
     print(io, "]/[")
     showgroup(io,U(d),U)
     print(io, "] ", unitname(U), " -> ", unitname(S))
 end
 
-@pure Base.inv(::ConvertUnit{D,U,S}) where {D,U,S} = ConvertUnit{inv(D),U,S}()
+@pure Base.inv(::ConvertUnit{U,S}) where {U,S} = ConvertUnit{U,S}(inv(dimensions(c)))
 
-(D::Constant)(U::UnitSystem,S::UnitSystem) = ConvertUnit{D,U,S}()
+(D::Constant)(U::UnitSystem,S::UnitSystem) = ConvertUnit{U,S}(D)
 (D::Constant)(U::UnitSystem) = U(ratio(D,Natural,U),D)
 (D::Constant)(v::Real,U::UnitSystem,S::UnitSystem=Metric) = v/ratio(D,U,S) #U(_,D)
+(D::Group{:USQ})(U::UnitSystem,S::UnitSystem) = ConvertUnit{U,S}(D)
+(D::Group{:USQ})(U::UnitSystem) = U(ratio(D,Natural,U),D)
+(D::Group{:USQ})(v::Real,U::UnitSystem,S::UnitSystem=Metric) = v/ratio(D,U,S) #U(_,D)
 #(D::Dimension)(v::Number,U::UnitSystem,S::UnitSystem=Natural) = U(v/ratio(D,U,S),D)
 
-Base.log(x::ConvertUnit{D,U,S}) where {D,U,S} = ConvertUnit{log(D),U,S}()
-Base.log2(x::ConvertUnit{D,U,S}) where {D,U,S} = ConvertUnit{log2(D),U,S}()
-Base.log10(x::ConvertUnit{D,U,S}) where {D,U,S} = ConvertUnit{log10(D),U,S}()
-Base.log(b::Number,x::ConvertUnit{D,U,S}) where {D,U,S} = ConvertUnit{log(b,D),U,S}()
-Base.exp(x::ConvertUnit{D,U,S}) where {D,U,S} = ConvertUnit{exp(D),U,S}()
-Base.exp2(x::ConvertUnit{D,U,S}) where {D,U,S} = ConvertUnit{exp2(D),U,S}()
-Base.exp10(x::ConvertUnit{D,U,S}) where {D,U,S} = ConvertUnit{exp10(D),U,S}()
-Base.:^(a::Number,b::ConvertUnit{D,U,S}) where {D,U,S} = ConvertUnit{a^D,U,S}()
-Base.:^(a::ConvertUnit{D,U,S},b::Integer) where {D,U,S} = Quantity{D^b,U,S}()
-Base.:^(a::ConvertUnit{D,U,S},b::Rational{Int}) where {D,U,S} = Quantity{D^b,U,S}()
-Base.:*(a::ConvertUnit{A,U,S},b::ConvertUnit{B,U,S}) where {A,B,U,S} = ConvertUnit{A*B,U,S}()
-Base.:/(a::ConvertUnit{A,U,S},b::ConvertUnit{B,U,S}) where {A,B,U,S} = ConvertUnit{A/B,U,S}()
+Base.log(x::ConvertUnit{U,S}) where {U,S} = ConvertUnit{U,S}(log(dimensions(x)))
+Base.log2(x::ConvertUnit{U,S}) where {U,S} = ConvertUnit{U,S}(log2(dimensions(x)))
+Base.log10(x::ConvertUnit{U,S}) where {U,S} = ConvertUnit{U,S}(log10(dimensions(x)))
+Base.log(b::Number,x::ConvertUnit{U,S}) where {U,S} = ConvertUnit{U,S}(log(b,dimensions(x)))
+Base.exp(x::ConvertUnit{U,S}) where {U,S} = ConvertUnit{U,S}(exp(dimensions(x)))
+Base.exp2(x::ConvertUnit{U,S}) where {U,S} = ConvertUnit{U,S}(exp2(dimensions(x)))
+Base.exp10(x::ConvertUnit{U,S}) where {U,S} = ConvertUnit{U,S}(exp10(dimensions(x)))
+Base.:^(a::Number,b::ConvertUnit{U,S}) where {U,S} = ConvertUnit{U,S}(a^dimensions(b))
+Base.:^(a::ConvertUnit{U,S},b::Integer) where {U,S} = Quantity{U,S}(dimensions(a)^b)
+Base.:^(a::ConvertUnit{U,S},b::Rational{Int}) where {U,S} = Quantity{U,S}(dimensions(a)^b)
+Base.:*(a::ConvertUnit{U,S},b::ConvertUnit{U,S}) where {U,S} = ConvertUnit{U,S}(dimensions(a)*dimensions(b))
+Base.:/(a::ConvertUnit{U,S},b::ConvertUnit{U,S}) where {U,S} = ConvertUnit{U,S}(dimensions(a)/dimensions(b))
 
 # quantity
 
-struct Quantity{D,U,T} <: AbstractModule
+struct Quantity{U,T,D} <: AbstractModule
     v::T
-    Quantity{D,U,T}(v) where {T,D,U} = new{D,normal(U),T}(v)
-    @pure Quantity{D,U,Int}(v) where {D,U} = new{D,normal(U),Int}(v)
-    @pure Quantity{D,U,Float64}(v) where {D,U} = new{D,normal(U),Float64}(v)
+    d::D
+    Quantity{U,T}(v,d::D) where {T,U,D} = new{normal(U),T,D}(v,d)
+    @pure Quantity{U,Int}(v,d::D) where {U,D} = new{normal(U),Int,D}(v,d)
+    @pure Quantity{U,Float64}(v,d::D) where {U,D} = new{normal(U),Float64,D}(v,d)
 end
 
-Quantity{D,U}(v::Quantity) where {D,U} = Quantity{D,U}(v.v)
-Quantity{D,U}(v::T) where {D,U,T} = Quantity{D,U,T}(v)
-@pure Quantity{D,U}(v::Int) where {D,U} = Quantity{D,U,Int}(v)::Quantity{D,normal(U),Int}
-@pure Quantity{D,U}(v::Float64) where {D,U} = Quantity{D,U,Float64}(v)::Quantity{D,normal(U),Float64}
-@pure Quantity(D,U,v::Int) = Quantity{D,U}(v)
-@pure Quantity(D,U,v::Float64) = Quantity{D,U}(v)
-Quantity(D,U,v) = Quantity{D,U}(v)
+Quantity{U}(v::Quantity,d) where U = Quantity{U}(v.v,d)
+Quantity{U}(v::T,d) where {U,T} = Quantity{U,T}(v,d)
+@pure Quantity{U}(v::Int,d::D) where {U,D} = Quantity{U,Int}(v,d)::Quantity{normal(U),Int,D}
+@pure Quantity{U}(v::Float64,d::D) where {U,D} = Quantity{U,Float64}(v,d)::Quantity{normal(U),Float64,D}
+@pure Quantity(U::UnitSystem,v::Int,d) = Quantity{U}(v,d)
+@pure Quantity(U::UnitSystem,v::Float64,d) = Quantity{U}(v,d)
+Quantity(U::UnitSystem,v,d) = Quantity{U}(v,d)
+@pure Quantity(v::Int,d,U::UnitSystem) = Quantity{U}(v,d)
+@pure Quantity(v::Float64,d,U::UnitSystem) = Quantity{U}(v,d)
+Quantity(v,d,U::UnitSystem) = Quantity{U}(v,d)
+@pure Quantity(d,U::UnitSystem,v::Int) = Quantity{U}(v,d) # deprecate
+@pure Quantity(d,U::UnitSystem,v::Float64) = Quantity{U}(v,d) # deprecate
+Quantity(d,U::UnitSystem,v) = Quantity{U}(v,d) # deprecate
 
 Base.convert(::Type{Float64},x::Quantity) = convert(Float64,x.v)
-Base.convert(::Type{Float64},x::Quantity{D,U,Float64}) where {D,U} = x.v
-Base.convert(::Type{T},x::Quantity{D,U,T}) where {D,U,T<:Number} = x.v
+Base.convert(::Type{Float64},x::Quantity{U,Float64}) where U = x.v
+Base.convert(::Type{T},x::Quantity{U,T}) where {U,T<:Number} = x.v
 
 import UnitSystems: evaldim
 UnitSystems.isquantity(U::Quantity) = true
 
 quantity(q) = q
 quantity(q::Quantity) = q.v
-@pure quantity(q::Quantity{D,U,Int} where {D,U}) = q.v
-@pure quantity(q::Quantity{D,U,Float64} where {D,U}) = q.v
-@pure dimensions(::Quantity{D}) where D = D
-@pure Dimension(::Quantity{D}) where D = D
-@pure unitsystem(::Quantity{D,U}) where {D,U} = dimension(U)
-@pure unitsystem2(::Quantity{D,U}) where {D,U} = U
+@pure quantity(q::Quantity{U,Int} where U) = q.v
+@pure quantity(q::Quantity{U,Float64} where U) = q.v
+@pure dimensions(q::Quantity) = q.d
+@pure Dimension(q::Quantity) = q.d
+@pure Dimension(q) = q
+@pure unitsystem(::Quantity{U}) where U = dimension(U)
+@pure unitsystem2(::Quantity{U}) where U = U
 
-function Base.show(io::IO,x::Quantity{D,U}) where {D,U}
+function Base.show(io::IO,x::Quantity{U}) where U
     print(io, x.v, " [")
-    showgroup(io,U(D),U)
+    showgroup(io,dimension(normal(U)(dimensions(x))),dimtext(U),'𝟙')
     print(io, "] ", unitname(U))
 end
 
-Base.log(x::Quantity{D,U}) where {D,U} = Quantity{log(D),U}(log(x.v))
-Base.log2(x::Quantity{D,U}) where {D,U} = Quantity{log2(D),U}(log2(x.v))
-Base.log10(x::Quantity{D,U}) where {D,U} = Quantity{log10(D),U}(log10(x.v))
-Base.log(b::Number,x::Quantity{D,U}) where {D,U} = Quantity{log(b,D),U}(log(b,x.v))
-Base.exp(x::Quantity{D,U}) where {D,U} = Quantity{exp(D),U}(exp(x.v))
-Base.exp2(x::Quantity{D,U}) where {D,U} = Quantity{exp2(D),U}(exp2(x.v))
-Base.exp10(x::Quantity{D,U}) where {D,U} = Quantity{exp10(D),U}(exp10(x.v))
-#Base.:^(a::Constant,b::Quantity{D,U}) where {D,U} = Quantity{a^D,U}(a^b.v)
-Base.:^(a::UnitSystems.Constant,b::Quantity{D,U}) where {D,U} = Quantity{a^D,U}(a^b.v)
-Base.:^(a::Number,b::Quantity{D,U}) where {D,U} = Quantity{a^D,U}(a^b.v)
-Base.:^(a::Quantity{D,U},b::Number) where {D,U} = Quantity{D^b,U}(a.v^b)
-Base.:^(a::Quantity{D,U},b::Integer) where {D,U} = Quantity{D^b,U}(a.v^b)
-Base.:^(a::Quantity{D,U},b::Rational{Int}) where {D,U} = Quantity{D^b,U}(a.v^b)
-Base.:+(a::Number,b::Quantity{D,U}) where {D,U} = U(D)==𝟙 ? Quantity{D,U}(a+b.v) : throw(error("$(U(D)) ≠ 𝟙 "))
-Base.:+(a::Quantity{D,U},b::Number) where {D,U} = U(D)==𝟙 ? Quantity{D,U}(a.v+b) : throw(error("$(U(D)) ≠ 𝟙 "))
-Base.:-(a::Number,b::Quantity{D,U}) where {D,U} = U(D)==𝟙 ? Quantity{D,U}(a-b.v) : throw(error("$(U(D)) ≠ 𝟙 "))
-Base.:-(a::Quantity{D,U},b::Number) where {D,U} = U(D)==𝟙 ? Quantity{D,U}(a.v-b) : throw(error("$(U(D)) ≠ 𝟙 "))
-Base.:-(a::Quantity{D,U},b::Quantity{D,U}) where {D,U} = Quantity{D,U}(a.v-b.v)
-Base.:+(a::Quantity{D,U},b::Quantity{D,U}) where {D,U} = Quantity{D,U}(a.v+b.v)
-Base.:*(a::Real,b::Quantity{D,U}) where {D,U} = Quantity{D,U}(a*b.v)
-Base.:*(a::Quantity{D,U},b::Real) where {D,U} = Quantity{D,U}(a.v*b)
-Base.:*(a::Complex,b::Quantity{D,U}) where {D,U} = Quantity{D,U}(a*b.v)
-Base.:*(a::Quantity{D,U},b::Complex) where {D,U} = Quantity{D,U}(a.v*b)
-Base.:*(a::Quantity{A,U},b::Quantity{B,U}) where {A,B,U} = Quantity{A*B,U}(a.v*b.v)
-Base.:/(a::Quantity{A,U},b::Quantity{B,U}) where {A,B,U} = Quantity{A/B,U}(a.v/b.v)
-Base.:/(a::Quantity{D,U},b::Quantity{D,U}) where {D,U} = Quantity{D/D,U}(a.v/b.v)
-Base.:/(a::Quantity{D,A},b::Quantity{D,B}) where {A,B,D} = ConvertUnit{(a.v/b.v)*D,A,B}()
-Base.:/(a::Number,b::Quantity{D}) where D = a*inv(b)
-Base.:/(a::Quantity{D},b::Number) where D = a*inv(b)
-Base.:/(a::Quantity{D},b::UnitSystems.Constant) where D = a*inv(b)
-Base.:/(a::UnitSystems.Constant,b::Quantity{D}) where D = a*inv(b)
-Base.:/(a::Quantity{D,U},b::ConvertUnit{D,S,U}) where {D,U,S} = a*ConvertUnit{D,U,S}()
-Base.:-(a::Quantity{D,U}) where {D,U} = Quantity{D,U}(-a.v)
-Base.inv(a::Quantity{D,U}) where {D,U} = Quantity{inv(D),U}(inv(a.v))
-Base.sqrt(a::Quantity{D,U}) where {D,U} = Quantity{sqrt(D),U}(sqrt(a.v))
-Base.cbrt(a::Quantity{D,U}) where {D,U} = Quantity{cbrt(D),U}(cbrt(a.v))
+Base.log(x::Quantity{U}) where U = Quantity{U}(log(x.v),log(dimensions(x)))
+Base.log2(x::Quantity{U}) where U = Quantity{U}(log2(x.v),log2(dimensions(x)))
+Base.log10(x::Quantity{U}) where U = Quantity{U}(log10(x.v),log10(dimensions(x)))
+Base.log(b::Number,x::Quantity{U}) where U = Quantity{U}(log(b,x.v),log(b,dimensions(x)))
+Base.exp(x::Quantity{U}) where U = Quantity{U}(exp(x.v),exp(dimensions(x)))
+Base.exp2(x::Quantity{U}) where U = Quantity{U}(exp2(x.v),exp2(dimensions(x)))
+Base.exp10(x::Quantity{U}) where U = Quantity{U}(exp10(x.v),exp10(dimensions(x)))
+#Base.:^(a::Constant,b::Quantity{U}) where U = Quantity{U}(a^b.v,a^dimensions(x))
+Base.:^(a::UnitSystems.Constant,b::Quantity{U}) where U = Quantity{U}(a^b.v,a^dimensions(b))
+Base.:^(a::Number,b::Quantity{U}) where U = Quantity{U}(a^b.v,a^dimensions(b))
+Base.:^(a::Quantity{U},b::Number) where U = Quantity{U}(a.v^b,dimensions(a)^b)
+Base.:^(a::Quantity{U},b::Integer) where U = Quantity{U}(a.v^b,dimensions(a)^b)
+Base.:^(a::Quantity{U},b::Rational{Int}) where U = Quantity{U}(a.v^b,dimensions(a)^b)
+Base.:+(a::Number,b::Quantity{U}) where U = U(D)==𝟙 ? Quantity{U}(a+b.v) : throw(error("$(U(D)) ≠ 𝟙 "),dimensions(b))
+Base.:+(a::Quantity{U},b::Number) where U = U(D)==𝟙 ? Quantity{U}(a.v+b) : throw(error("$(U(D)) ≠ 𝟙 "),dimensions(a))
+Base.:-(a::Number,b::Quantity{U}) where U = U(D)==𝟙 ? Quantity{U}(a-b.v) : throw(error("$(U(D)) ≠ 𝟙 "),dimensions(a))
+Base.:-(a::Quantity{U},b::Number) where U = U(D)==𝟙 ? Quantity{U}(a.v-b) : throw(error("$(U(D)) ≠ 𝟙 "),dimensions(a))
+Base.:*(a::Real,b::Quantity{U}) where U = Quantity{U}(a*b.v,dimensions(b))
+Base.:*(a::Quantity{U},b::Real) where U = Quantity{U}(a.v*b,dimensions(a))
+Base.:*(a::Complex,b::Quantity{U}) where U = Quantity{U}(a*b.v,dimensions(b))
+Base.:*(a::Quantity{U},b::Complex) where U = Quantity{U}(a.v*b,dimensions(a))
+Base.:*(a::Quantity{U},b::Quantity{U}) where U = Quantity{U}(a.v*b.v,dimensions(a)*dimensions(b))
+#Base.:/(a::Quantity{U},b::Quantity{U}) where U = Quantity{U}(a.v/b.v,dimensions(a)/dimensions(b))
+Base.:/(a::Quantity{U},b::Quantity{U}) where U = Quantity{U}(a.v/b.v,dimensions(a)/dimensions(b))
+Base.:/(a::Quantity{A},b::Quantity{B}) where {A,B} = ConvertUnit{A,B}((a.v/b.v)*dimensions(a))
+Base.:/(a::Number,b::Quantity) = a*inv(b)
+Base.:/(a::Quantity,b::Number) = a*inv(b)
+Base.:/(a::Quantity,b::UnitSystems.Constant) = a*inv(b)
+Base.:/(a::UnitSystems.Constant,b::Quantity) = a*inv(b)
+#Base.:/(a::Quantity{U},b::ConvertUnit{S,U}) where {U,S} = a*ConvertUnit{U,S}(dimensions(a))
+Base.:-(a::Quantity{U}) where U = Quantity{U}(-a.v,dimensions(a))
+Base.inv(a::Quantity{U}) where U = Quantity{U}(inv(a.v),inv(dimensions(a)))
+Base.sqrt(a::Quantity{U}) where U = Quantity{U}(sqrt(a.v),sqrt(dimensions(a)))
+Base.cbrt(a::Quantity{U}) where U = Quantity{U}(cbrt(a.v),cbrt(dimensions(a)))
 
-#Base.:*(a::Dimension{A},b::Quantity{D,U}) where {D,U,A} = Quantity{a,U}(10^-(isunknown(A) ? A.v.v[end] : A.v[end]))*b
-#Base.:*(a::Quantity{D,U},b::Dimension{B}) where {D,U,B} = a*Quantity{b,U}(10^-(isunknown(B) ? B.v.v[end] : B.v[end]))
-Base.:*(a::Quantity{D,U},b::ConvertUnit{A,U,U}) where {D,U,A} = D==A || A==𝟙 ? a : error("ConvertUnit incompatible $D ≠ $A")
-Base.:*(a::ConvertUnit{A,U,U},b::Quantity{D,U}) where {D,U,A} = D==A || A==𝟙 ? b : error("ConvertUnit incompatible $D ≠ $A")
-Base.:*(a::ConvertUnit{A,S,U},b::Quantity{D,U}) where {D,U,A,S} = (A==D && S==U) ? b : inv(A)==D ? ConvertUnit{inv(A),U,S}()*b : error("ConvertUnit incompatible $(inv(A)) ≠ $D")
-Base.:*(a::Quantity{D,U},b::ConvertUnit{A,S,U}) where {D,U,A,S} = (D==A && S==U) ? a : inv(A)==D ? a*ConvertUnit{inv(A),U,S}() : error("ConvertUnit incompatible $D ≠ $(inv(A))")
-Base.:*(a::ConvertUnit{A,U,S},b::Quantity{D,U}) where {A,D,U,S} = A==D ? Quantity{D,S}(ratio(D,U,S)*b.v) : error("ConvertUnit incompatible $A ≠ $B")
-Base.:*(a::Quantity{D,U},b::ConvertUnit{A,U,S}) where {A,D,U,S} = A==D ? Quantity{D,S}(a.v*ratio(D,U,S)) : error("ConvertUnit incompatible $A ≠ $B")
+#Base.:*(a::Dimension{A},b::Quantity{U}) where {U,A} = Quantity{a,U}(10^-(isunknown(A) ? A.v.v[end] : A.v[end]))*b
+#Base.:*(a::Quantity{U},b::Dimension{B}) where {U,B} = a*Quantity{b,U}(10^-(isunknown(B) ? B.v.v[end] : B.v[end]))
+Base.:*(a::Quantity{U},b::ConvertUnit{U,U}) where U = dimensions(a)==dimensions(b) || dimensions(b)==𝟙 ? a : error("ConvertUnit incompatible $(dimensions(a)) ≠ $(dimensions(b))")
+Base.:*(a::ConvertUnit{U,U},b::Quantity{U}) where U = dimensions(b)==dimensions(a) || dimensions(a)==𝟙 ? b : error("ConvertUnit incompatible $(dimensions(b)) ≠ $(dimensions(a))")
+function Base.:*(a::ConvertUnit{S,U},b::Quantity{U}) where {U,S}
+    A,D = dimensions(a),dimensions(b)
+    (A==D && S==U) ? b : inv(A)==D ? ConvertUnit{U,S}(inv(A))*b : error("ConvertUnit incompatible $(inv(A)) ≠ $D")
+end
+function Base.:*(a::Quantity{U},b::ConvertUnit{S,U}) where {U,S}
+    D,A = dimensions(a),dimensions(b)
+    (D==A && S==U) ? a : inv(A)==D ? a*ConvertUnit{U,S}(inv(A)) : error("ConvertUnit incompatible $D ≠ $(inv(A))")
+end
+function Base.:*(a::ConvertUnit{U,S},b::Quantity{U}) where {U,S}
+    A,D = dimensions(a),dimensions(b)
+    A==D ? Quantity{S}(ratio(D,U,S)*b.v,D) : error("ConvertUnit incompatible $A ≠ $B")
+end
+function Base.:*(a::Quantity{U},b::ConvertUnit{U,S}) where {U,S}
+    D,A = dimensions(a),dimensions(b)
+    A==D ? Quantity{S}(a.v*ratio(D,U,S),D) : error("ConvertUnit incompatible $A ≠ $B")
+end
+function Base.:+(a::Constant,b::Quantity{U}) where U
+    D = dimensions(b)
+    U(D)==𝟙 ? Quantity{U}(a+b.v,D) : throw(error("$(U(D)) ≠ 𝟙 "))
+end
+function Base.:+(a::Quantity{U},b::Constant) where U
+    D = dimensions(a)
+    U(D)==𝟙 ? Quantity{U}(a.v+b,D) : throw(error("$(U(D)) ≠ 𝟙 "))
+end
+function Base.:-(a::Constant,b::Quantity{U}) where U
+    D = dimensions(b)
+    U(D)==𝟙 ? Quantity{D,U}(a-b.v) : throw(error("$(U(D)) ≠ 𝟙 "))
+end
+function Base.:-(a::Quantity{U},b::Constant) where U
+    D = dimensions(a)
+    U(D)==𝟙 ? Quantity{U}(a.v-b,D) : throw(error("$(U(D)) ≠ 𝟙 "))
+end
+Base.:*(a::Constant,b::Quantity{U}) where U = Quantity{U}(a*b.v,dimensions(b))
+Base.:*(a::Quantity{U},b::Constant) where U = Quantity{U}(a.v*b,dimensions(a))
+Base.:*(a::Group,b::Quantity{U}) where U = Quantity{U}(a*b.v,dimensions(b))
+Base.:*(a::Quantity{U},b::Group) where U = Quantity{U}(a.v*b,dimensions(a))
+#Base.:/(a::Constant,b::Quantity{U}) where U = Quantity{U}(a/b.v,inv(dimensions(b)))
+#Base.:/(a::Quantity{U},b::Constant) where U = Quantity{U}(a.v/b,dimensions(a))
 
-Base.:+(a::Constant,b::Quantity{D,U}) where {D,U} = U(D)==𝟙 ? Quantity{D,U}(a+b.v) : throw(error("$(U(D)) ≠ 𝟙 "))
-Base.:+(a::Quantity{D,U},b::Constant) where {D,U} = U(D)==𝟙 ? Quantity{D,U}(a.v+b) : throw(error("$(U(D)) ≠ 𝟙 "))
-Base.:-(a::Constant,b::Quantity{D,U}) where {D,U} = U(D)==𝟙 ? Quantity{D,U}(a-b.v) : throw(error("$(U(D)) ≠ 𝟙 "))
-Base.:-(a::Quantity{D,U},b::Constant) where {D,U} = U(D)==𝟙 ? Quantity{D,U}(a.v-b) : throw(error("$(U(D)) ≠ 𝟙 "))
-Base.:*(a::Constant,b::Quantity{D,U}) where {D,U} = Quantity{D,U}(a*b.v)
-Base.:*(a::Quantity{D,U},b::Constant) where {D,U} = Quantity{D,U}(a.v*b)
-Base.:*(a::Group,b::Quantity{D,U}) where {D,U} = Quantity{D,U}(a*b.v)
-Base.:*(a::Quantity{D,U},b::Group) where {D,U} = Quantity{D,U}(a.v*b)
-#Base.:/(a::Constant,b::Quantity{D,U}) where {D,U} = Quantity{inv(D),U}(a/b.v)
-#Base.:/(a::Quantity{D,U},b::Constant) where {D,U} = Quantity{D,U}(a.v/b)
-
-Base.:(==)(a::Quantity{A,U},b::Quantity{B,U}) where {A,B,U} = U(A) == U(B) && a.v == b.v
-Base.:(==)(a::Number,b::Quantity{D}) where D = iszero(norm(first(value(D),dims-1))) && a == b.v*10^last(value(D))
-Base.:(==)(a::Quantity{D},b::Number) where D = iszero(norm(first(value(D),dims-1))) && b == a.v*10^last(value(D))
+Base.:(==)(a::Quantity{U},b::Quantity{U}) where U = U(dimensions(a)) == U(dimensions(b)) && a.v == b.v
+function Base.:(==)(a::Number,b::Quantity)
+    D = dimensions(b)
+    iszero(norm(first(value(D),dims-1))) && a == b.v*10^last(value(D))
+end
+function Base.:(==)(a::Quantity,b::Number)
+    D = dimensions(a)
+    iszero(norm(first(value(D),dims-1))) && b == a.v*10^last(value(D))
+end
 
 @pure isunknown(x) = false
 
@@ -302,9 +357,14 @@ end
 @pure function sub(a::Constant{A},b::Constant{B},U) where {A,B}
     islog(A) && islog(B) ? a - b : add(a,b)
 end
-
-Base.:+(a::Quantity{A,U},b::Quantity{B,U}) where {A,B,U} = Quantity{add(A,B,U),U}(a.v+b.v)
-Base.:-(a::Quantity{A,U},b::Quantity{B,U}) where {A,B,U} = Quantity{sub(A,B,U),U}(a.v-b.v)
+function Base.:+(a::Quantity{U},b::Quantity{U}) where U
+    A,B = dimensions(a),dimensions(b)
+    Quantity{U}(a.v+b.v,A≠B ? add(A,B,U) : A)
+end
+function Base.:-(a::Quantity{U},b::Quantity{U}) where U
+    A,B = dimensions(a),dimensions(b)
+    Quantity{U}(a.v-b.v,A≠B ? sub(A,B,U) : A)
+end
 
 # other
 
@@ -312,21 +372,25 @@ Base.isone(x::Quantity{D}) where D = false
 
 # Quantities
 
-struct Quantities{D,U,N,T} <: TupleVector{N,T}
+struct Quantities{U,N,T,D} <: TupleVector{N,T}
     v::Values{N,T}
-    Quantities{D,U,N,T}(v::Values{N,T}) where {D,U,N,T} = new{D,normal(U),N,T}(v)
+    d::D
+    Quantities{U,N,T}(v::Values{N,T},d::D) where {D,U,N,T} = new{normal(U),N,T,D}(v,d)
 end
 
-Quantities{D,U,N,T}(v::Tuple) where {D,U,N,T} = Quantities{D,U,N,T}(Values{N,T}(v))
-Quantities{D,U}(v::Values{N,T}) where {D,U,N,T} = Quantities{D,U,N,T}(v)
-Quantities(D,U,v) = Quantities{D,U}(v)
+Quantities{U,N,T}(v::Tuple,d::D) where {D,U,N,T} = Quantities{U,N,T}(Values{N,T}(v),d)
+Quantities{U}(v::Values{N,T},d::D) where {D,U,N,T} = Quantities{U,N,T}(v,d)
+Quantities(d,U,v) = Quantities{U}(v,d)
 
-(S::UnitSystem)(x::Quantities{D,U}) where {D,U} = Quantities{D,S}(D.(x.v,Ref(U),Ref(S)))
+function (S::UnitSystem)(x::Quantities{U}) where U
+    D = dimensions(x)
+    Quantities{S}(D.(x.v,Ref(U),Ref(S)),D)
+end
 
 export Quantity, Quantities
 
-Base.getindex(x::Quantities{D,U},i::Integer) where {D,U} = Quantity{D,U}(x.v[i])
-Base.getindex(x::Quantities{D,U},i::Int) where {D,U} = Quantity{D,U}(x.v[i])
+Base.getindex(x::Quantities{U},i::Integer) where U = Quantity{U}(x.v[i],dimensions(x))
+Base.getindex(x::Quantities{U},i::Int) where U = Quantity{U}(x.v[i],dimensions(x))
 
 # functors
 # 1,2,3,4, 5, 6, 7,  8,9,10,11
@@ -366,10 +430,18 @@ function UnitSystem(d::Group{:USQ,<:Integer})
         d.v[3]+d.v[4]-d.v[6]-2(d.v[1]+d.v[8])),1,Val(:USQ))
 end
 
-Quantity(::ConvertUnit{D,U,S}) where {D,U,S} = Quantity{D,S}(ratio(D,U,S))
-(u::UnitSystem)(::ConvertUnit{D,U,S}) where {D,U,S} = Quantity{D,u}(ratio(D,U,S))
-(u::UnitSystem)(a::Number, d::Constant) = Quantity{d,u}(a)
-(u::UnitSystem)(a::Number, d::AbelianGroup) = Quantity{Dimension(d),u}(a)
+function Quantity(c::ConvertUnit{U,S}) where {U,S}
+    D = dimensions(c)
+    Quantity{S}(ratio(D,U,S),D)
+end
+function (u::UnitSystem)(c::ConvertUnit{U,S}) where {U,S}
+    D = dimensions(c)
+    Quantity{u}(ratio(D,U,S),D)
+end
+(u::UnitSystem)(a::Number, d::Constant) = Quantity{u}(a,d)
+(u::UnitSystem)(a::Number, d::AbelianGroup) = Quantity{u}(a,d)
 (u::UnitSystem)(::Constant{D}) where D = Constant{normal(u)(D)}()
+#(u::UnitSystem)(d::Group) = normal(Metric)(d)
+(u::UnitSystem)(d::Group) = normal(u)≠u ? normal(u)(d) : normal(Metric)(d)
 (u::UnitSystem)(d::LogGroup{B}) where B = LogGroup{B}(u(d.v))
 (u::UnitSystem)(d::ExpGroup{B}) where B = ExpGroup{B}(u(d.v))

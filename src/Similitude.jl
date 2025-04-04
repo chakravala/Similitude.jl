@@ -35,8 +35,13 @@ import FieldAlgebra: AbstractModule, AbelianGroup, Group, LogGroup, ExpGroup
 import FieldAlgebra: value, isonezero, islog, base
 #import FieldAlgebra: coef, coefprod, checkint, checkints, promoteint, promoteints, expos, chars,  makeint, findpower, latexpo, printexpo, printdims, printnum, showgroup, showfun, valueat
 
+const CONSTDIM,CONSTVAL = false,false
+
 macro group(args...)
-    FieldAlgebra.group(args...)
+    CONSTDIM ? FieldAlgebra.group(args...) : FieldAlgebra.group2(args...)
+end
+macro group2(args...)
+    CONSTVAL ? FieldAlgebra.group(args...) : FieldAlgebra.group2(args...)
 end
 
 include("dimension.jl")
@@ -49,7 +54,7 @@ printdims(io::IO,x::Group{T,dims}) where T = printdims(io,x.v,isq)
 printdims(io::IO,x::Group{T,vals}) where T = printdims(io,x.v,basis)
 
 #logdb(x::Constant{D}) where D = Constant{logdb(D)}()
-logdb(x::Quantity{D,U}) where {D,U} = Quantity{logdb(D),U}(logdb(x.v))
+logdb(x::Quantity{U}) where U = Quantity{U}(logdb(x.v),logdb(dimensions(x)))
 
 @pure UnitSystems.unit(x::Group{:USQ},y=1) = x
 @pure UnitSystems.unit(x::AbelianGroup,y=1) = x
@@ -67,6 +72,7 @@ end
 @pure ratio_calc(D::LogGroup{ℯ},U,S) = log(ratio_calc(value(D),U,S))
 @pure ratio_calc(D::ExpGroup{ℯ},U,S) = exp(ratio_calc(value(D),U,S))
 @pure ratio(::Constant{D},U,S) where D = ratio_calc(UnitSystem(D),normal(U),normal(S))
+@pure ratio(D,U,S) = ratio_calc(UnitSystem(D),normal(U),normal(S))
 @pure function ratio_calc(D::Group,U,S)
     Constant(
     UnitSystems.boltzmann(U,S)^D.v[1]*
@@ -81,27 +87,33 @@ end
     UnitSystems.lorentz(U,S)^D.v[10]*
     UnitSystems.gravity(U,S)^D.v[11])
 end
-export Ratio
+export Ratio, dimensions
 const Ratio = ratio
 
 import UnitSystems: normal, unitname
 normal(x::Quantity) = quantity(x)
-(s::UnitSystem)(q::Quantity{D,U}) where {D,U} = (S=normal(s); Quantity{D,S}(q.v*ratio(D,U,S)))
-(q::Quantity{D,U})(s::UnitSystem) where {D,U} = (S=normal(s); Quantity{D,S}(q.v*ratio(D,U,S)))
+function (s::UnitSystem)(q::Quantity{U}) where U
+    S = normal(s); D = dimensions(q)
+    Quantity{S}(q.v*ratio(D,U,S),D)
+end
+function (q::Quantity{U})(s::UnitSystem) where U
+    S = normal(s); D = dimensions(q)
+    Quantity{S}(q.v*ratio(D,U,S),D)
+end
 
 function Quantity(u::UnitSystem)
     U = constant(u)
-    kB = Quantity{F*L/Θ,U}(UnitSystems.boltzmann(U))
-    ħ = Quantity{F*L*T/A,U}(UnitSystems.planckreduced(U))
-    c = Quantity{L/T,U}(UnitSystems.lightspeed(U))
-    μ0 = Quantity{F*T*T*C*C/(Q*Q)/R,U}(UnitSystems.permeability(U))
-    mₑ = Quantity{M,U}(UnitSystems.electronmass(U))
-    Mᵤ = Quantity{M/N,U}(UnitSystems.molarmass(U))
-    Kcd = Quantity{J*T/F/L,U}(UnitSystems.luminousefficacy(U))
-    θ = Quantity{A,U}(UnitSystems.angle(U))
-    λ = Quantity{R,U}(UnitSystems.rationalization(U))
-    αL = Quantity{inv(C),U}(UnitSystems.lorentz(U))
-    g₀ = Quantity{M*L/(F*T*T),U}(UnitSystems.gravity(U))
+    kB = Quantity{U}(UnitSystems.boltzmann(U),F*L/Θ)
+    ħ = Quantity{U}(UnitSystems.planckreduced(U),F*L*T/A)
+    c = Quantity{U}(UnitSystems.lightspeed(U),L/T)
+    μ0 = Quantity{U}(UnitSystems.permeability(U),F*T*T*C*C/(Q*Q)/R)
+    mₑ = Quantity{U}(UnitSystems.electronmass(U),M)
+    Mᵤ = Quantity{U}(UnitSystems.molarmass(U),M/N)
+    Kcd = Quantity{U}(UnitSystems.luminousefficacy(U),J*T/F/L)
+    θ = Quantity{U}(UnitSystems.angle(U),A)
+    λ = Quantity{U}(UnitSystems.rationalization(U),R)
+    αL = Quantity{U}(UnitSystems.lorentz(U),inv(C))
+    g₀ = Quantity{U}(UnitSystems.gravity(U),M*L/(F*T*T))
     τ = UnitSystems.tau(U)
     x = UnitSystems.two(U)
     y = UnitSystems.three(U)
@@ -117,6 +129,7 @@ const LD,JD = Constant(384399)*(𝟐*𝟓)^3,Constant(778479)*(𝟐*𝟓)^6
 const μE☾ = Constant(UnitSystems.μE☾)
 
 import UnitSystems: GaussSystem, EntropySystem, ElectricSystem, AstronomicalSystem
+println("Similitude: initializing UnitSystems data")
 include("$dir/initdata.jl")
 
 const Unified = Quantity(UnitSystem(F*L/Θ,F*L*T/A,L/T,F*T*T*C*C/(Q*Q)/R,M,M/N,J*T/F/L,A,R,inv(C),M*L/(F*T*T),Universe,τ,𝟐,𝟑,𝟓,𝟕,𝟏𝟏,𝟏𝟗,𝟒𝟑))
@@ -126,7 +139,6 @@ dimlatex(::typeof(normal(Unified))) = Values("\\text{k}_\\text{B}","\\hbar","\\t
 export Unified
 unitname(::typeof(normal(Unified))) = "Unified"
 (u::typeof(normal(Unified)))(d::Group) = UnitSystem(d)
-(u::UnitSystem)(d::Group) = normal(Metric)(d)
 
 for unit ∈ Convert
     if unit ∉ (:dimensionless,:length,:time,:angle,:molarmass,:luminousefficacy)
@@ -136,9 +148,9 @@ end
 const gravityforce = acceleration/specificforce
 
 @doc """
-    (D::Constant)(U::UnitSystem,S::UnitSystem) = ConvertUnit{D,U,S}()
+    (D::Group{:USQ})(U::UnitSystem,S::UnitSystem) = ConvertUnit{U,S}(D)
 
-Constant for unit conversion for `D::Constant` from `U::UnitSystem` to `S::UnitSystem`.
+Constant for unit conversion for `D::Group{:USQ}` from `U::UnitSystem` to `S::UnitSystem`.
 ```Julia
 julia> energy(Metric,CGS)
 $(energy(Metric,CGS))
@@ -150,9 +162,9 @@ There still exists further opportunity to expand on the implementation of `Conve
 """ ConvertUnit
 
 @doc """
-    (U::UnitSystem)(v::Number, D::Constant) ↦ Quantity(D,U,v) = Quantity{D,U}(v)
+    (U::UnitSystem)(v::Number, d) ↦ Quantity(U,v,d) = Quantity{U}(v,d)
 
-Numerical `Quantity` having value `v` with `D::Constant` specified in `U::UnitSystem`.
+Numerical `Quantity` having value `v` with dimension `d` specified in `U::UnitSystem`.
 ```Julia
 julia> Metric(1,energy)
 $(Metric(1,energy))
@@ -160,12 +172,13 @@ $(Metric(1,energy))
 julia> English(1,energy)
 $(English(1,energy))
 ```
-An alternate syntax `Quantity(D::Constant, U::UnitSystem, v::Number)` is also available as standard syntax.
+An alternate syntax `Quantity(U::UnitSystem, v::Number, d)` is also available as standard syntax.
 When `using UnitSystems` instead of `using Similitude`, this same syntax can be written so that code doesn't need to be changed while the output is generated.
 """ Quantity
 
 dimlatex(U) = Values("\\text{F}","\\text{M}","\\text{L}","\\text{T}","\\text{Q}","\\Theta","\\text{N}","\\text{J}","\\text{A}","\\text{R}","\\text{C}")
 
+println("Similitude: deriving Quantity measurements")
 include("derived.jl")
 
 (u::typeof(normal(UnitSystems.QCD)))(d::Group) = normal(Planck)(d)
@@ -243,10 +256,15 @@ function printquotient(U)
 end
 
 if haskey(ENV,"UNITDOCS")
+println("Similitude: documenting kinematic units")
 include("$dir/kinematicdocs.jl")
+println("Similitude: documenting electromagnetic units")
 include("$dir/electromagneticdocs.jl")
+println("Similitude: documenting thermodynamic units")
 include("$dir/thermodynamicdocs.jl")
+println("Similitude: documenting physics constants")
 include("$dir/physicsdocs.jl")
+println("Similitude: documenting UnitSystems")
 include("$dir/systems.jl")
 
 @doc """

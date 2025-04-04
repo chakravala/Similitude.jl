@@ -20,6 +20,135 @@ for i ∈ 1:dims
     @eval export $(Symbol(isq[i]))
 end
 
+# 1,2,3,4, 5, 6, 7,  8,9,10,11
+#kB,ħ,𝘤,μ₀,mₑ,Mᵤ,Kcd,A,λ,αL,g₀
+# F,M,L,T, Q, Θ, N,  J,A,R, C
+
+function (u::typeof(normal(Engineering)))(d::Group)
+    Group(Values(d.v[1],d.v[2],d.v[3],d.v[4],d.v[5],d.v[6],d.v[7],d.v[8],d.v[9],0,0),1,Val(:USQ))
+end
+function (u::typeof(normal(Gravitational)))(d::Group)
+    Group(Values(d.v[1]+d.v[2],0,d.v[3]-d.v[2],d.v[4]+2(d.v[2]),d.v[5],d.v[6],d.v[7],d.v[8],0,0,0),1,Val(:USQ))
+end
+function (u::typeof(normal(Metric)))(d::Group)
+    Group(Values(0,d.v[1]+d.v[2],d.v[1]+d.v[3],d.v[4]-2(d.v[1]),d.v[5],d.v[6],d.v[7],d.v[8],0,0,0),1,Val(:USQ))
+end
+function (u::typeof(normal(MetricDegree)))(d::Group)
+    Group(Values(0,d.v[1]+d.v[2],d.v[1]+d.v[3],d.v[4]-2(d.v[1]),d.v[5],d.v[6],d.v[7],d.v[8],d.v[9],0,0),1,Val(:USQ))
+end
+#=function (u::typeof(normal(Astronomical)))(d::Group)
+    Group(Values(d.v[1],0,d.v[3]+3d.v[2],d.v[4]-2d.v[2],d.v[5],d.v[6],d.v[7],d.v[8],d.v[9],0,0),1,Val(:USQ))
+end=#
+
+function (u::typeof(normal(Gauss)))(d::Group{<:Integer})
+    Group(Values(0,d.v[1]+d.v[2]+d.v[5]//2,d.v[1]+d.v[3]+(3//2)*d.v[5]+d.v[11],d.v[4]-2(d.v[1])-d.v[5]-d.v[11],0,d.v[6],d.v[7],d.v[8],0,0,0),1,Val(:USQ))
+end
+function (u::typeof(normal(ESU)))(d::Group{<:Integer})
+    Group(Values(0,d.v[1]+d.v[2]+d.v[5]//2,d.v[1]+d.v[3]+(3//2)*d.v[5],d.v[4]-2(d.v[1])-d.v[5],0,d.v[6],d.v[7],d.v[8],0,0,0),1,Val(:USQ))
+end
+function (u::typeof(normal(EMU)))(d::Group{<:Integer})
+    Group(Values(0,d.v[1]+d.v[2]+d.v[5]//2,d.v[1]+d.v[3]+d.v[5]//2,d.v[4]-2(d.v[1]),0,d.v[6],d.v[7],d.v[8],0,0,0),1,Val(:USQ))
+end
+
+function (u::typeof(normal(Gauss)))(d::Group)
+    Group(Values(0,d.v[1]+d.v[2]+d.v[5]//2,d.v[1]+d.v[3]+(3//2)*d.v[5]+d.v[11],d.v[4]-2(d.v[1])-d.v[5]-d.v[11],0,d.v[6],d.v[7],d.v[8],0,0,0),1,Val(:USQ))
+end
+function (u::typeof(normal(ESU)))(d::Group)
+    Group(Values(0,d.v[1]+d.v[2]+d.v[5]//2,d.v[1]+d.v[3]+(3//2)*d.v[5],d.v[4]-2(d.v[1])-d.v[5],0,d.v[6],d.v[7],d.v[8],0,0,0),1,Val(:USQ))
+end
+function (u::typeof(normal(EMU)))(d::Group)
+    Group(Values(0,d.v[1]+d.v[2]+d.v[5]//2,d.v[1]+d.v[3]+d.v[5]//2,d.v[4]-2(d.v[1]),0,d.v[6],d.v[7],d.v[8],0,0,0),1,Val(:USQ))
+end
+
+function (u::typeof(normal(Stoney)))(d::Group)
+    Group(Values(0,d.v[1]+d.v[2]+d.v[6]+d.v[7],0,d.v[3]+d.v[4]-d.v[1],d.v[5],0,0,d.v[8],0,0,0),1,Val(:USQ))
+end
+function (u::typeof(normal(Electronic)))(d::Group)
+    Group(Values(0,0,0,d.v[3]+d.v[4]-d.v[1]-d.v[8],d.v[5],0,0,0,0,0,0),1,Val(:USQ))
+end
+function (u::typeof(normal(QCDoriginal)))(d::Group)
+    Group(Values(0,d.v[2]+d.v[6]+d.v[7]+2(d.v[1]+d.v[8])-d.v[3]-d.v[4],0,0,d.v[5],0,0,0,0,0,0),1,Val(:USQ))
+end
+function (u::typeof(normal(Planck)))(d::Group)
+    Group(Values(0,d.v[2]+d.v[6]+d.v[7]+2(d.v[1]+d.v[8])-d.v[3]-d.v[4],0,0,0,0,0,0,0,0,0),1,Val(:USQ))
+end
+function (u::typeof(normal(PlanckGauss)))(d::Group)
+    Group(Values(0,d.v[2]+d.v[6]+d.v[7]+2(d.v[1]+d.v[8])-d.v[3]-d.v[4],0,0,d.v[5],0,0,0,0,0,0),1,Val(:USQ))
+end
+function (u::typeof(normal(Natural)))(d::Group)
+    Group(Values(0,0,0,0,0,0,0,0,0,0,0),1,Val(:USQ))
+end
+function (u::typeof(normal(NaturalGauss)))(d::Group)
+    Group(Values(0,0,0,0,d.v[5],0,0,0,0,0,0),1,Val(:USQ))
+end
+
+function (u::typeof(normal(Rydberg)))(d::Group)
+    Group(Values(0,d.v[1]+d.v[2]+d.v[7],d.v[1]+d.v[3],d.v[4]-d.v[6]+2(d.v[8]-d.v[1]),d.v[5],0,0,0,0,0,0),1,Val(:USQ))
+end
+function (u::typeof(normal(Hartree)))(d::Group)
+    Group(Values(0,0,d.v[3]+2(d.v[4]-d.v[6])-3(d.v[1])-4(d.v[8]),0,d.v[5],0,0,0,0,0,0),1,Val(:USQ))
+end
+function (u::typeof(normal(Hubble)))(d::Group)
+    Group(Values(0,0,0,d.v[3]+d.v[4]-d.v[1]-d.v[8],d.v[5],0,0,0,0,0,0),1,Val(:USQ))
+end
+function (u::typeof(normal(Cosmological)))(d::Group)
+    Group(Values(0,d.v[1]+d.v[2]+d.v[6]+d.v[7],0,d.v[3]+d.v[4]-d.v[1],d.v[5],0,0,d.v[8],0,0,0),1,Val(:USQ))
+end
+function (u::typeof(normal(CosmologicalQuantum)))(d::Group)
+    Group(Values(0,d.v[2]+d.v[6]+d.v[7]+2(d.v[1]+d.v[8])-d.v[3]-d.v[4],0,0,d.v[5],0,0,0,0,0,0),1,Val(:USQ))
+end
+
+export @unitdim, @unitgroup
+
+"""
+    @unitgroup(U::UnitSystem,S::UnitSystem) -> (u::typeof(normal(U)))(d::Group) = normal(S)(d)
+
+Implements `Group` homomorphism for `U` in terms of existing specification from `S`.
+"""
+macro unitgroup(U,S)
+    :((u::typeof(normal($U)))(d::Group) = normal($S)(d))
+end
+
+#=@unitgroup SI2019 Metric
+@unitgroup SI1976 Metric
+@unitgroup Conventional Metric
+@unitgroup CODATA Metric
+@unitgroup International Metric
+@unitgroup InternationalMean Metric
+@unitgroup MTS Metric
+@unitgroup KKH Metric
+@unitgroup MPH Metric
+@unitgroup Nautical Metric
+@unitgroup Meridian Metric
+@unitgroup FFF Metric
+@unitgroup IAU Metric
+@unitgroup IAUE Metric
+@unitgroup IAUJ Metric=#
+
+@unitgroup MetricTurn MetricDegree
+@unitgroup MetricSpatian MetricDegree
+@unitgroup MetricGradian MetricDegree
+@unitgroup MetricArcminute MetricDegree
+@unitgroup MetricArcsecond MetricDegree
+@unitgroup LorentzHeaviside Gauss
+#@unitgroup Thomson EMU
+#@unitgroup Kennelly EMU
+@unitgroup Schrodinger Rydberg
+@unitgroup QCD Planck
+@unitgroup QCDGauss PlanckGauss
+#@unitgroup Cosmological Hubble
+
+#@unitgroup SI2019Engineering Engineering
+#@unitgroup MeridianEngineering Engineering
+#@unitgroup GravitationalSI2019 Gravitational
+#@unitgroup GravitationalMeridian Gravitational
+@unitgroup British Gravitational
+@unitgroup English Engineering
+@unitgroup Survey Engineering
+@unitgroup IPS Gravitational
+
+# constants
+
 for unit ∈ Dimensionless
     @eval @pure $unit(C::Coupling) = UnitSystems.$unit(C)
     @eval @pure $unit(U::UnitSystem) = UnitSystems.$unit(universe(U))
@@ -39,11 +168,12 @@ const jupitermass = Metric(GMJ/G,M)(IAU)
 const lunarmass = earthmass/μE☾
 const gforce = English(𝟏,specificforce)
 const atmosphere = Metric(atm,pressure)
-const loschmidt = atmosphere(SI2019)/SI2019(T₀,Θ)/boltzmann(SI2019)
+#const loschmidt = atmosphere(SI2019)/SI2019(T₀,Θ)/boltzmann(SI2019)
+loschmidt(U::UnitSystem,P=atmosphere(U),T=SI2019(T₀,Θ)(U)) = U(P,pressure)/U(T,Θ)/boltzmann(U)
 const amagat = loschmidt(SI2019)/avogadro(SI2019)
 const wienwavelength = planck(SI)*lightspeed(SI)/boltzmann(SI)/Constant(4.965114231744276303)
 const wienfrequency = Constant(2.821439372122078893)*boltzmann(SI)/planck(SI)
-@pure (::typeof(loschmidt))(U::UnitSystem,P=atmosphere(U),T=SI2019(T₀,Θ)(U)) = U(P,pressure)/U(T,Θ)/boltzmann(U)
+#@pure (::typeof(loschmidt))(U::UnitSystem,P=atmosphere(U),T=SI2019(T₀,Θ)(U)) = U(P,pressure)/U(T,Θ)/boltzmann(U)
 @pure mechanicalheat(U::UnitSystem) = molargas(U)*U(normal(calorie(Metric)/molargas(Metric)),Θ*N)
 
 # angle
@@ -291,16 +421,19 @@ end
 
 #const H0 = hubble
 
-evaldim(::typeof(angle)) = A
-evaldim(::typeof(length)) = L
-evaldim(::typeof(time)) = T
+evaldim(::typeof(Constant(angle))) = A
+evaldim(::typeof(Constant(length))) = L
+evaldim(::typeof(Constant(time))) = T
 evaldim(::typeof(molarmass)) = M/N
 evaldim(::typeof(luminousefficacy)) = T*J/F/L
 evaldim(::typeof(UnitSystems.solidangle)) = A^2
-evaldim(unit::Group) = unit
+evaldim(::typeof(Constant(loschmidt))) = L^-3
+evaldim(unit::Function) = evaldim(Constant(unit))
+evaldim(unit::Group) = Constant(unit)
 evaldim(unit::Constant) = unit
 evaldim(unit::Symbol) = evaldim(eval(unit))
 evaldim(unit::Symbol,U) = evaldim(evaldim(unit),U)
+evaldim(unit::Function,U) = evaldim(evaldim(unit),U)
 evaldim(unit,U) = normal(U)(unit)
 
 (::typeof(molarmass))(U::UnitSystem,S::UnitSystem) = (M/N)(U,S)
@@ -335,15 +468,15 @@ $(evaldim(unit)(Unified))
 @pure unitsym(x) = :nonstandard
 for unit ∈ Convert
     if unit ∉ (:length,:time,:angle,:molarmass,:luminousefficacy)
-        @eval @pure unitsym(::typeof($(eval(unit)))) = $(QuoteNode(unit))
+        @eval @pure unitsym(::typeof($(Constant(eval(unit))))) = $(QuoteNode(unit))
     else
-        @eval @pure unitsym(::typeof($(evaldim(unit)))) = $(QuoteNode(unit))
+        @eval @pure unitsym(::typeof($(Constant(evaldim(unit))))) = $(QuoteNode(unit))
     end
 end
 
 function unitext(unit,text)
     dim = Dimension(eval(unit))
-    sym = unitsym(dim)
+    sym = unitsym(Constant(dim))
     return """
 ```Julia
 $unit(U::UnitSystem) = $text
@@ -360,132 +493,7 @@ $(dimlist(eval(sys)))
 ```
 """
 
-# 1,2,3,4, 5, 6, 7,  8,9,10,11
-#kB,ħ,𝘤,μ₀,mₑ,Mᵤ,Kcd,A,λ,αL,g₀
-# F,M,L,T, Q, Θ, N,  J,A,R, C
-
-function (u::typeof(normal(Engineering)))(d::Group)
-    Group(Values(d.v[1],d.v[2],d.v[3],d.v[4],d.v[5],d.v[6],d.v[7],d.v[8],d.v[9],0,0),1,Val(:USQ))
-end
-function (u::typeof(normal(Gravitational)))(d::Group)
-    Group(Values(d.v[1]+d.v[2],0,d.v[3]-d.v[2],d.v[4]+2(d.v[2]),d.v[5],d.v[6],d.v[7],d.v[8],0,0,0),1,Val(:USQ))
-end
-function (u::typeof(normal(Metric)))(d::Group)
-    Group(Values(0,d.v[1]+d.v[2],d.v[1]+d.v[3],d.v[4]-2(d.v[1]),d.v[5],d.v[6],d.v[7],d.v[8],0,0,0),1,Val(:USQ))
-end
-function (u::typeof(normal(MetricDegree)))(d::Group)
-    Group(Values(0,d.v[1]+d.v[2],d.v[1]+d.v[3],d.v[4]-2(d.v[1]),d.v[5],d.v[6],d.v[7],d.v[8],d.v[9],0,0),1,Val(:USQ))
-end
-#=function (u::typeof(normal(Astronomical)))(d::Group)
-    Group(Values(d.v[1],0,d.v[3]+3d.v[2],d.v[4]-2d.v[2],d.v[5],d.v[6],d.v[7],d.v[8],d.v[9],0,0),1,Val(:USQ))
-end=#
-
-function (u::typeof(normal(Gauss)))(d::Group{<:Integer})
-    Group(Values(0,d.v[1]+d.v[2]+d.v[5]//2,d.v[1]+d.v[3]+(3//2)*d.v[5]+d.v[11],d.v[4]-2(d.v[1])-d.v[5]-d.v[11],0,d.v[6],d.v[7],d.v[8],0,0,0),1,Val(:USQ))
-end
-function (u::typeof(normal(ESU)))(d::Group{<:Integer})
-    Group(Values(0,d.v[1]+d.v[2]+d.v[5]//2,d.v[1]+d.v[3]+(3//2)*d.v[5],d.v[4]-2(d.v[1])-d.v[5],0,d.v[6],d.v[7],d.v[8],0,0,0),1,Val(:USQ))
-end
-function (u::typeof(normal(EMU)))(d::Group{<:Integer})
-    Group(Values(0,d.v[1]+d.v[2]+d.v[5]//2,d.v[1]+d.v[3]+d.v[5]//2,d.v[4]-2(d.v[1]),0,d.v[6],d.v[7],d.v[8],0,0,0),1,Val(:USQ))
-end
-
-function (u::typeof(normal(Gauss)))(d::Group)
-    Group(Values(0,d.v[1]+d.v[2]+d.v[5]//2,d.v[1]+d.v[3]+(3//2)*d.v[5]+d.v[11],d.v[4]-2(d.v[1])-d.v[5]-d.v[11],0,d.v[6],d.v[7],d.v[8],0,0,0),1,Val(:USQ))
-end
-function (u::typeof(normal(ESU)))(d::Group)
-    Group(Values(0,d.v[1]+d.v[2]+d.v[5]//2,d.v[1]+d.v[3]+(3//2)*d.v[5],d.v[4]-2(d.v[1])-d.v[5],0,d.v[6],d.v[7],d.v[8],0,0,0),1,Val(:USQ))
-end
-function (u::typeof(normal(EMU)))(d::Group)
-    Group(Values(0,d.v[1]+d.v[2]+d.v[5]//2,d.v[1]+d.v[3]+d.v[5]//2,d.v[4]-2(d.v[1]),0,d.v[6],d.v[7],d.v[8],0,0,0),1,Val(:USQ))
-end
-
-function (u::typeof(normal(Stoney)))(d::Group)
-    Group(Values(0,d.v[1]+d.v[2]+d.v[6]+d.v[7],0,d.v[3]+d.v[4]-d.v[1],d.v[5],0,0,d.v[8],0,0,0),1,Val(:USQ))
-end
-function (u::typeof(normal(Electronic)))(d::Group)
-    Group(Values(0,0,0,d.v[3]+d.v[4]-d.v[1]-d.v[8],d.v[5],0,0,0,0,0,0),1,Val(:USQ))
-end
-function (u::typeof(normal(QCDoriginal)))(d::Group)
-    Group(Values(0,d.v[2]+d.v[6]+d.v[7]+2(d.v[1]+d.v[8])-d.v[3]-d.v[4],0,0,d.v[5],0,0,0,0,0,0),1,Val(:USQ))
-end
-function (u::typeof(normal(Planck)))(d::Group)
-    Group(Values(0,d.v[2]+d.v[6]+d.v[7]+2(d.v[1]+d.v[8])-d.v[3]-d.v[4],0,0,0,0,0,0,0,0,0),1,Val(:USQ))
-end
-function (u::typeof(normal(PlanckGauss)))(d::Group)
-    Group(Values(0,d.v[2]+d.v[6]+d.v[7]+2(d.v[1]+d.v[8])-d.v[3]-d.v[4],0,0,d.v[5],0,0,0,0,0,0),1,Val(:USQ))
-end
-function (u::typeof(normal(Natural)))(d::Group)
-    Group(Values(0,0,0,0,0,0,0,0,0,0,0),1,Val(:USQ))
-end
-function (u::typeof(normal(NaturalGauss)))(d::Group)
-    Group(Values(0,0,0,0,d.v[5],0,0,0,0,0,0),1,Val(:USQ))
-end
-
-function (u::typeof(normal(Rydberg)))(d::Group)
-    Group(Values(0,d.v[1]+d.v[2]+d.v[7],d.v[1]+d.v[3],d.v[4]-d.v[6]+2(d.v[8]-d.v[1]),d.v[5],0,0,0,0,0,0),1,Val(:USQ))
-end
-function (u::typeof(normal(Hartree)))(d::Group)
-    Group(Values(0,0,d.v[3]+2(d.v[4]-d.v[6])-3(d.v[1])-4(d.v[8]),0,d.v[5],0,0,0,0,0,0),1,Val(:USQ))
-end
-function (u::typeof(normal(Hubble)))(d::Group)
-    Group(Values(0,0,0,d.v[3]+d.v[4]-d.v[1]-d.v[8],d.v[5],0,0,0,0,0,0),1,Val(:USQ))
-end
-function (u::typeof(normal(Cosmological)))(d::Group)
-    Group(Values(0,d.v[1]+d.v[2]+d.v[6]+d.v[7],0,d.v[3]+d.v[4]-d.v[1],d.v[5],0,0,d.v[8],0,0,0),1,Val(:USQ))
-end
-function (u::typeof(normal(CosmologicalQuantum)))(d::Group)
-    Group(Values(0,d.v[2]+d.v[6]+d.v[7]+2(d.v[1]+d.v[8])-d.v[3]-d.v[4],0,0,d.v[5],0,0,0,0,0,0),1,Val(:USQ))
-end
-
-export @unitdim, @unitgroup
-
-"""
-    @unitgroup(U::UnitSystem,S::UnitSystem) -> (u::typeof(normal(U)))(d::Group) = normal(S)(d)
-
-Implements `Group` homomorphism for `U` in terms of existing specification from `S`.
-"""
-macro unitgroup(U,S)
-    :((u::typeof(normal($U)))(d::Group) = normal($S)(d))
-end
-
-#=@unitgroup SI2019 Metric
-@unitgroup SI1976 Metric
-@unitgroup Conventional Metric
-@unitgroup CODATA Metric
-@unitgroup International Metric
-@unitgroup InternationalMean Metric
-@unitgroup MTS Metric
-@unitgroup KKH Metric
-@unitgroup MPH Metric
-@unitgroup Nautical Metric
-@unitgroup Meridian Metric
-@unitgroup FFF Metric
-@unitgroup IAU Metric
-@unitgroup IAUE Metric
-@unitgroup IAUJ Metric=#
-
-@unitgroup MetricTurn MetricDegree
-@unitgroup MetricSpatian MetricDegree
-@unitgroup MetricGradian MetricDegree
-@unitgroup MetricArcminute MetricDegree
-@unitgroup MetricArcsecond MetricDegree
-@unitgroup LorentzHeaviside Gauss
-#@unitgroup Thomson EMU
-#@unitgroup Kennelly EMU
-@unitgroup Schrodinger Rydberg
-@unitgroup QCD Planck
-@unitgroup QCDGauss PlanckGauss
-#@unitgroup Cosmological Hubble
-
-#@unitgroup SI2019Engineering Engineering
-#@unitgroup MeridianEngineering Engineering
-#@unitgroup GravitationalSI2019 Gravitational
-#@unitgroup GravitationalMeridian Gravitational
-@unitgroup British Gravitational
-@unitgroup English Engineering
-@unitgroup Survey Engineering
-@unitgroup IPS Gravitational
+# unitdim
 
 """
     @unitdim(U::UnitSystem,F,M,L,T,Q,Θ,N,J="lm",A="rad")
@@ -627,8 +635,8 @@ These standard examples are some of the built-in defaults.
 """
 macro unitdim(D, U, S, L)
     quote
-        Similitude.showgroup(io::IO,::typeof($U($D)),::typeof(normal($U))) = print(io,$S)
-        Similitude.latexgroup(io::IO,::typeof($U($D)),::typeof(normal($U))) = print(io,$L)
+        Similitude.showgroup(io::IO,::typeof(Constant($U($D))),::typeof(normal($U))) = print(io,$S)
+        Similitude.latexgroup(io::IO,::typeof(Constant($U($D))),::typeof(normal($U))) = print(io,$L)
     end
 end
 
@@ -639,8 +647,8 @@ for U ∈ (:Engineering,:Gravitational)
         @unitdim photonirradiance $U "Hz⋅m⁻²" "\\text{Hz} \\cdot \\text{m}^{-2}"
         @unitdim illuminance $U "lx" "\\text{lx}"
         @unitdim luminousexposure $U "lx⋅s" "\\text{lx} \\cdot \\text{s}"
-        showgroup(io::IO,::typeof(luminance),::typeof(normal($U))) = print(io,"nt")
-        latexgroup(io::IO,::typeof(luminance),::typeof(normal($U))) = print(io,"\\text{nt}")
+        showgroup(io::IO,::typeof(Constant(luminance)),::typeof(normal($U))) = print(io,"nt")
+        latexgroup(io::IO,::typeof(Constant(luminance)),::typeof(normal($U))) = print(io,"\\text{nt}")
     end
 end
 for U ∈ (:Engineering,:English,:Survey)
@@ -723,8 +731,8 @@ end
 for U ∈ (:Metric, :SI2019, :CODATA, :Conventional, :International, :InternationalMean)
     @eval begin
         @unitdim luminousintensity $U "cd" "\\text{cd}"
-        Similitude.showgroup(io::IO,::typeof(luminance),::typeof(normal($U))) = print(io,"nt")
-        Similitude.latexgroup(io::IO,::typeof(luminance),::typeof(normal($U))) = print(io,"\\text{nt}")
+        Similitude.showgroup(io::IO,::typeof(Constant(luminance)),::typeof(normal($U))) = print(io,"nt")
+        Similitude.latexgroup(io::IO,::typeof(Constant(luminance)),::typeof(normal($U))) = print(io,"\\text{nt}")
         @unitdim angularmomentum $U "J⋅s" "\\text{J} \\cdot \\text{s}"
         @unitdim magneticdipolemoment $U "J⋅T⁻¹" "\\text{J} \\cdot \\text{T}^{-1}"
     end
@@ -781,8 +789,8 @@ end
 @unitdim luminousintensity Meridian "cd" "\\text{cd}"
 @unitdim illuminance Meridian "elx" "\\text{elx}"
 @unitdim luminousexposure Meridian "lx⋅s" "\\text{lx} \\cdot \\text{s}"
-showgroup(io::IO,::typeof(luminance),::typeof(normal(Meridian))) = print(io,"ent")
-latexgroup(io::IO,::typeof(luminance),::typeof(normal(Meridian))) = print(io,"\\text{ent}")
+showgroup(io::IO,::typeof(Constant(luminance)),::typeof(normal(Meridian))) = print(io,"ent")
+latexgroup(io::IO,::typeof(Constant(luminance)),::typeof(normal(Meridian))) = print(io,"\\text{ent}")
 
 @unitdim impulse Meridian "eN⋅s" "\\text{eN} \\cdot \\text{s}"
 @unitdim angularmomentum Meridian "eJ⋅s" "\\text{eJ} \\cdot \\text{s}"
@@ -847,8 +855,8 @@ for U ∈ (:Gauss, :EMU, :ESU, :LorentzHeaviside)
         @unitdim power/luminousflux $U "erg⋅s⁻¹lm⁻¹" "\\text{erg} \\cdot \\text{s}^{-1} \\text{lm}^{-1}"
         @unitdim luminousintensity $U "cd" "\\text{cd}"
         @unitdim illuminance $U "ph" "\\text{ph}"
-        showgroup(io::IO,::typeof(luminance),::typeof(normal($U))) = print(io,"sb")
-        latexgroup(io::IO,::typeof(luminance),::typeof(normal($U))) = print(io,"\\text{sb}")
+        showgroup(io::IO,::typeof(Constant(luminance)),::typeof(normal($U))) = print(io,"sb")
+        latexgroup(io::IO,::typeof(Constant(luminance)),::typeof(normal($U))) = print(io,"\\text{sb}")
 
         @unitdim angularmomentum $U "erg⋅s" "\\text{erg} \\cdot \\text{s}"
         @unitdim action*speed $U "erg⋅cm" "\\text{erg} \\cdot \\text{cm}"

@@ -20,13 +20,21 @@ import FieldConstants: Constant
 @pure constant(N::Number) = 𝟏*N
 @pure constant(D::Constant) = D
 @pure constant(::typeof(MathConstants.φ)) = φ
-@pure constant(::typeof(MathConstants.γ)) = Constant(valueat(35,vals,:Constants))
-@pure constant(::typeof(ℯ)) = Constant(valueat(36,vals,:Constants))
 @pure constant(::typeof(π)) = τ/𝟐
 @pure constant(::typeof(exp)) = constant(ℯ)
+if CONSTVAL
+@pure constant(::typeof(MathConstants.γ)) = Constant(valueat(35,vals,:Constants))
+@pure constant(::typeof(ℯ)) = Constant(valueat(36,vals,:Constants))
 @pure constant(N::Float64) = Constant(factorize(N,Val(:Constants)))
 @pure constant(N::Int) = Constant(factorize(N,τ,Val(:Constants)))
 @pure constant(N::AbelianGroup) = Constant{N}()
+else
+@pure constant(::typeof(MathConstants.γ)) = valueat(35,vals,:Constants)
+@pure constant(::typeof(ℯ)) = valueat(36,vals,:Constants)
+@pure constant(N::Float64) = factorize(N,Val(:Constants))
+@pure constant(N::Int) = factorize(N,τ,Val(:Constants))
+@pure constant(N::AbelianGroup) = N
+end
 
 #constant(d::LogGroup{B},C=UnitSystems.Universe) where B = log(B,constant(value(d),C))
 #constant(d::ExpGroup{B},C=UnitSystems.Universe) where B = B^constant(value(d),C)
