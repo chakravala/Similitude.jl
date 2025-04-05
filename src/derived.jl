@@ -424,8 +424,8 @@ end
 evaldim(::typeof(Constant(angle))) = A
 evaldim(::typeof(Constant(length))) = L
 evaldim(::typeof(Constant(time))) = T
-evaldim(::typeof(molarmass)) = M/N
-evaldim(::typeof(luminousefficacy)) = T*J/F/L
+evaldim(d::typeof(molarmass)) = dimensions(d)
+#evaldim(::typeof(luminousefficacy)) = T*J/F/L
 evaldim(::typeof(UnitSystems.solidangle)) = A^2
 evaldim(::typeof(Constant(loschmidt))) = L^-3
 evaldim(unit::Function) = evaldim(Constant(unit))
@@ -436,8 +436,8 @@ evaldim(unit::Symbol,U) = evaldim(evaldim(unit),U)
 evaldim(unit::Function,U) = evaldim(evaldim(unit),U)
 evaldim(unit,U) = normal(U)(unit)
 
-(::typeof(molarmass))(U::UnitSystem,S::UnitSystem) = (M/N)(U,S)
-(::typeof(luminousefficacy))(U::UnitSystem,S::UnitSystem) = (T*J/F/L)(U,S)
+(d::typeof(molarmass))(U::UnitSystem,S::UnitSystem) = dimensions(d)(U,S)
+#(::typeof(luminousefficacy))(U::UnitSystem,S::UnitSystem) = (T*J/F/L)(U,S)
 
 dimlist(text,dim) = "$text : [$(evaldim(dim))], [$(evaldim(dim,British))], [$(evaldim(dim,Metric))], [$(evaldim(dim,EMU))], [$(evaldim(dim,ESU))]"
 dimlist(U) = join(dimtext(normal(U)) == isq ? isodim.(Ref(U),usq) : unitdim.(Ref(U),usq), ", ")

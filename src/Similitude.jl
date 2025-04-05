@@ -129,8 +129,30 @@ const LD,JD = Constant(384399)*(𝟐*𝟓)^3,Constant(778479)*(𝟐*𝟓)^6
 const μE☾ = Constant(UnitSystems.μE☾)
 
 import UnitSystems: GaussSystem, EntropySystem, ElectricSystem, AstronomicalSystem
+
+function includereplace(mod,file,str="Constant("=>"identity(")
+    if VERSION >= v"1.9"
+        for expr in Meta.parseall(replace(read(file,String),str)).args
+            Base.eval(mod, expr)
+        end
+    else
+        code = replace(read(file,String),str)
+        pos = 1
+        while pos <= lastindex(code)
+            expr, next_pos = Meta.parse(code,pos; raise=false)
+            expr === nothing && break # no more expressions
+            Base.eval(mod,expr)
+            pos = next_pos
+        end
+    end
+end
+
 println("Similitude: initializing UnitSystems data")
-include("$dir/initdata.jl")
+if CONSTVAL
+    include("$dir/initdata.jl")
+else
+    includereplace(Similitude,"$dir/initdata.jl")
+end
 
 const Unified = Quantity(UnitSystem(F*L/Θ,F*L*T/A,L/T,F*T*T*C*C/(Q*Q)/R,M,M/N,J*T/F/L,A,R,inv(C),M*L/(F*T*T),Universe,τ,𝟐,𝟑,𝟓,𝟕,𝟏𝟏,𝟏𝟗,𝟒𝟑))
 dimtext(::typeof(normal(Unified))) = Values("kB","ħ","𝘤","μ₀","mₑ","Mᵤ","Kcd","ϕ","λ","αL","g₀")
