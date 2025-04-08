@@ -202,6 +202,7 @@ dimlatex(U) = Values("\\text{F}","\\text{M}","\\text{L}","\\text{T}","\\text{Q}"
 
 println("Similitude: deriving Quantity measurements")
 include("derived.jl")
+include("unitdim.jl")
 
 (u::typeof(normal(UnitSystems.QCD)))(d::Group) = normal(Planck)(d)
 

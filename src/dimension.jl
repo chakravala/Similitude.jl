@@ -22,16 +22,76 @@ import UnitSystems: listext, Kinematic, Mechanical, Electromagnetic, Thermodynam
 
 value(::Constant{D}) where D = value(D)
 
-showgroup(io::IO,x::Constant{D},u::UnitSystem) where D = showgroup(io,D,dimtext(u),'𝟙')
-showgroup(io::IO,x::AbelianGroup,u::UnitSystem) = showgroup(io,Constant(x),u)
-showgroup(io::IO,x::Group,u::UnitSystem) = showgroup(io,Constant(x),u)
-showgroup(io::IO,x,u,c) = showgroup(io,x,u)
+showgroup(io::IO,x::Constant{D},u::UnitSystem) where D = showgroup2(io,x,u)
+showgroup(io::IO,x::AbelianGroup,u::UnitSystem) = showgroup2(io,x,u)
+showgroup(io::IO,x::Group,u::UnitSystem) = showgroup2(io,x,u)
+showgroup(io::IO,x,u,c) = showgroup2(io,x,u)
 
 import FieldAlgebra: latexgroup
-latexgroup(io::IO,x::Constant{D},u) where D = latexgroup(io,D,dimlatex(u),"\\mathbb{1}")
-latexgroup(io::IO,x::AbelianGroup,u::UnitSystem) = latexgroup(io,Constant(x),u)
-latexgroup(io::IO,x::Group,u::UnitSystem) = latexgroup(io,Constant(x),u)
-latexgroup(io::IO,x,u,c) = latexgroup(io,x,u)
+latexgroup(io::IO,x::Constant{D},u) where D = latexgroup2(io,x,u)
+latexgroup(io::IO,x::AbelianGroup,u::UnitSystem) = latexgroup2(io,x,u)
+latexgroup(io::IO,x::Group,u::UnitSystem) = latexgroup2(io,x,u)
+latexgroup(io::IO,x,u,c) = latexgroup2(io,x,u)
+
+const systemgroup = Dict{Symbol,Int}()
+const unitgroup = Dict{Group{:USQ,<:Real,Int,11},String}[]
+function addgroup(D,U,str)
+    nam = Symbol(unitname(U))
+    if !haskey(systemgroup,nam)
+        push!(unitgroup,Dict{Group{:USQ,<:Real,Int,11},String}())
+        push!(systemgroup,nam=>length(unitgroup))
+    end
+    dict = unitgroup[systemgroup[nam]]
+    if haskey(dict,D)
+        error("duplicate unit registered $D")
+    else
+        push!(dict,D=>str)
+    end
+end
+showgroup2(io::IO,x::Constant{D},U::UnitSystem) where D = showgroup2(io,D,U)
+function showgroup2(io,D,U)
+    nam = Symbol(unitname(U))
+    if haskey(systemgroup,nam)
+        dict = unitgroup[systemgroup[nam]]
+        if haskey(dict,D)
+            print(io,dict[D])
+        else
+            showgroup(io,D,dimtext(U),'𝟙')
+        end
+    else
+        showgroup(io,D,dimtext(U),'𝟙')
+    end
+end
+
+const systemlatex = Dict{Symbol,Int}()
+const unitlatex = Dict{Group{:USQ,<:Real,Int,11},String}[]
+function addlatex(D,U,str)
+    nam = Symbol(unitname(U))
+    if !haskey(systemlatex,nam)
+        push!(unitlatex,Dict{Group{:USQ,<:Real,Int,11},String}())
+        push!(systemlatex,nam=>length(unitlatex))
+    end
+    dict = unitlatex[systemlatex[nam]]
+    if haskey(dict,D)
+        error("duplicate unit registered $D")
+    else
+        push!(dict,D=>str)
+    end
+end
+latexgroup2(io::IO,x::Constant{D},U::UnitSystem) where D = latexgroup2(io,D,U)
+function latexgroup2(io,D,U)
+    nam = Symbol(unitname(U))
+    if haskey(systemlatex,nam)
+        dict = unitlatex[systemlatex[nam]]
+        if haskey(dict,D)
+            print(io,dict[D])
+        else
+            latexgroup(io,D,dimtext(U),"\\mathbb{1}")
+        end
+    else
+        latexgroup(io,D,dimtext(U),"\\mathbb{1}")
+    end
+end
 
 preferred(a,b) = a
 
