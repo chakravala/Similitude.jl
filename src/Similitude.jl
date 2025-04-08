@@ -131,7 +131,7 @@ const μE☾ = Constant(UnitSystems.μE☾)
 import UnitSystems: GaussSystem, EntropySystem, ElectricSystem, AstronomicalSystem
 
 function includereplace(mod,file,str="Constant("=>"identity(")
-    if VERSION >= v"1.9"
+    if VERSION >= v"1.6"
         for expr in Meta.parseall(replace(read(file,String),str)).args
             Base.eval(mod, expr)
         end

@@ -1,7 +1,7 @@
 name = "Similitude"
 uuid = "d70e672a-ff44-4dfc-8031-4cc812d84922"
 authors = ["Michael Reed"]
-version = "0.3.1"
+version = "0.3.2"
 
 [deps]
 UnitSystems = "3a241a3c-2137-41aa-af5e-1388e404ca09"

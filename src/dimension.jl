@@ -23,12 +23,14 @@ import UnitSystems: listext, Kinematic, Mechanical, Electromagnetic, Thermodynam
 value(::Constant{D}) where D = value(D)
 
 showgroup(io::IO,x::Constant{D},u::UnitSystem) where D = showgroup(io,D,dimtext(u),'𝟙')
-showgroup(io::IO,x::AbelianGroup,u::UnitSystem) = showgroup(io,x,dimtext(u),'𝟙')
-showgroup(io::IO,x::Group,u::UnitSystem) = showgroup(io,x,dimtext(u),'𝟙')
+showgroup(io::IO,x::AbelianGroup,u::UnitSystem) = showgroup(io,Constant(x),u)
+showgroup(io::IO,x::Group,u::UnitSystem) = showgroup(io,Constant(x),u)
 showgroup(io::IO,x,u,c) = showgroup(io,x,u)
 
 import FieldAlgebra: latexgroup
 latexgroup(io::IO,x::Constant{D},u) where D = latexgroup(io,D,dimlatex(u),"\\mathbb{1}")
+latexgroup(io::IO,x::AbelianGroup,u::UnitSystem) = latexgroup(io,Constant(x),u)
+latexgroup(io::IO,x::Group,u::UnitSystem) = latexgroup(io,Constant(x),u)
 latexgroup(io::IO,x,u,c) = latexgroup(io,x,u)
 
 preferred(a,b) = a
@@ -246,7 +248,7 @@ quantity(q::Quantity) = q.v
 
 function Base.show(io::IO,x::Quantity{U}) where U
     print(io, x.v, " [")
-    showgroup(io,dimension(normal(U)(dimensions(x))),dimtext(U),'𝟙')
+    showgroup(io,normal(U)(dimensions(x)),U)
     print(io, "] ", unitname(U))
 end
 
