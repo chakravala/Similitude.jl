@@ -313,7 +313,7 @@ const horsepowerwatt = British(𝟐^4*𝟑^3/𝟓*τ,power)
 const horsepowermetric = GM(𝟑*𝟓^2,power)
 const tonsrefrigeration = thermalunit(Metric)/Metric(𝟑/𝟐/𝟓,T)
 const boilerhorsepower = Constant(1339)/Metric(𝟐^4*𝟑^2,T)*thermalunit(Metric)
-const electricalhorsepower = Metric(Constant(746),power)
+const electricalhorsepower = Metric(CONSTVAL ? Constant(𝟐*373) : 𝟐*373,power)
 
 # electromagnetic
 
@@ -357,7 +357,7 @@ const sealevel = Metric(T₀+𝟑*𝟓,Θ)
 const kelvin = Metric(𝟏,Θ)
 const celsius = Metric(T₀,Θ)
 const rankine = English(𝟏,Θ)
-const fahrenheit = English(Constant(459.67),Θ)
+const fahrenheit = English(CONSTVAL ? Constant(459.67) : 459.67,Θ)
 #const delisle = Metric(𝟐/𝟑,Θ)
 #const reaumur = Metric(𝟓/𝟐^2,Θ)
 
@@ -429,7 +429,7 @@ evaldim(d::typeof(molarmass)) = dimensions(d)
 evaldim(::typeof(UnitSystems.solidangle)) = A^2
 evaldim(::typeof(Constant(loschmidt))) = L^-3
 evaldim(unit::Function) = evaldim(Constant(unit))
-evaldim(unit::Group) = Constant(unit)
+evaldim(unit::Group) = CONSTDIM ? Constant(unit) : unit
 evaldim(unit::Constant) = unit
 evaldim(unit::Symbol) = evaldim(eval(unit))
 evaldim(unit::Symbol,U) = evaldim(evaldim(unit),U)
@@ -451,8 +451,10 @@ function isodimlatex(U,D)
     latexgroup(io,D,U)
     if D≠UD
         print(io,"=")
-        latexgroup(io,param(UD))
+        latexgroup(io,CONSTDIM ? param(UD) : UD)
     end
+    #print(io,"=")
+    #latexgroup(io,D,normal(U))
     out = String(take!(io))
 end
 
@@ -465,6 +467,7 @@ $(evaldim(unit)(Unified))
 ```
 """
 
+if CONSTDIM
 @pure unitsym(x) = :nonstandard
 for unit ∈ Convert
     if unit ∉ (:length,:time,:angle,:molarmass,:luminousefficacy)
@@ -473,10 +476,14 @@ for unit ∈ Convert
         @eval @pure unitsym(::typeof($(Constant(evaldim(unit))))) = $(QuoteNode(unit))
     end
 end
+else
+unitsym(x) = haskey(unitdict,x) ? unitdict[x] : :nonstandard
+const unitdict = Dict([unit ∉ (:length,:time,:angle,:molarmass,:luminousefficacy) ? eval(unit)=>unit : evaldim(unit)=>unit for unit ∈ Convert])
+end
 
 function unitext(unit,text)
     dim = Dimension(eval(unit))
-    sym = unitsym(Constant(dim))
+    sym = unitsym(CONSTDIM ? Constant(dim) : dim)
     return """
 ```Julia
 $unit(U::UnitSystem) = $text

@@ -74,7 +74,7 @@ end
 @pure ratio(::Constant{D},U,S) where D = ratio_calc(UnitSystem(D),normal(U),normal(S))
 @pure ratio(D,U,S) = ratio_calc(UnitSystem(D),normal(U),normal(S))
 @pure function ratio_calc(D::Group,U,S)
-    Constant(
+    (CONSTVAL ? Constant : identity)(
     UnitSystems.boltzmann(U,S)^D.v[1]*
     UnitSystems.planckreduced(U,S)^D.v[2]*
     UnitSystems.lightspeed(U,S)^D.v[3]*
@@ -160,7 +160,7 @@ dimlatex(::typeof(normal(Unified))) = Values("\\text{k}_\\text{B}","\\hbar","\\t
 
 export Unified
 unitname(::typeof(normal(Unified))) = "Unified"
-(u::typeof(normal(Unified)))(d::Group) = UnitSystem(d)
+(u::typeof(normal(Unified)))(d::Group) = d#UnitSystem(d)
 
 for unit ∈ Convert
     if unit ∉ (:dimensionless,:length,:time,:angle,:molarmass,:luminousefficacy)
@@ -278,12 +278,75 @@ function printquotient(U)
     end
 end
 
+function latexquotient(U)
+    latexquotient.(quotient(U),Ref(normal(U)))
+end
+function latexquotient(x,U)
+    io = IOBuffer()
+    Similitude.latexgroup(io,x.first,U)
+    str1 = String(take!(io))
+    for j ∈ 1:length(x.second)
+        y = x.second[j]
+        print(io,"$y \\[")
+        Similitude.latexgroup(io,Similitude.evaldim(y))
+        print(io,"\\]")
+        j<length(x.second) && print(io,", ")
+    end
+    Values(str1,String(take!(io)))
+end
+
+function latexquantity(q::Group)
+    io = IOBuffer()
+    FieldAlgebra.special_print(io,product(q))
+    print(io, " \\[\\mathbb{1}\\]")
+    str1 = String(take!(io))
+    FieldAlgebra.latexgroup_pre(io,q,FieldAlgebra.latext(q),'1')
+    Values(str1,String(take!(io)),"Universe")
+end
+function latexquantity(q::LogGroup)
+    io = IOBuffer()
+    FieldAlgebra.special_print(io,product(q))
+    print(io, " \\[\\mathbb{1}\\]")
+    Values(String(take!(io)),"","Universe") # skip latexgroup_pre for log (sackur tetrode)
+end
+function latexquantity(q::Quantity{U}) where U
+    v = 𝟏*q.v
+    io = IOBuffer()
+    FieldAlgebra.special_print(io,product(q.v))
+    print(io, " \\[")
+    latexgroup(io,normal(U)(dimensions(q)),U)
+    print(io, "\\]")
+    str1 = String(take!(io))
+    FieldAlgebra.latexgroup_pre(io,q.v,FieldAlgebra.latext(v),'1')
+    Values(str1,String(take!(io)),unitname(U))
+end
+function latexquantity(q::Similitude.ConvertUnit{U,S})  where {U,S}
+    io = IOBuffer()
+    rat = ratio(dimensions(q),U,S)
+    FieldAlgebra.special_print(io,product(rat))
+    d = convertdim(dimensions(q),U,S)
+    print(io, " \\[")
+    latexgroup(io,normal(S)(d),S)
+    print(io, "\\]/\\[")
+    latexgroup(io,normal(U)(d),U)
+    print(io, "\\]")
+    str1 = String(take!(io))
+    FieldAlgebra.latexgroup_pre(io,rat,FieldAlgebra.latext(rat),'1')
+    Values(str1,String(take!(io)),"$(unitname(U)) -> $(unitname(S))")
+end
+
+function latexdimensions(D,U)
+    io = IOBuffer()
+    latexgroup(io,U(D),U)
+    String(take!(io))
+end
+latexdimensions(D,U::Tuple) = latexdimensions.(Ref(D),U)
+latexdimensions(D::Vector,U::Tuple) = latexdimensions.(D,Ref(U))
+
 if haskey(ENV,"UNITDOCS")
-println("Similitude: documenting kinematic units")
+println("Similitude: documenting physics dimensions")
 include("$dir/kinematicdocs.jl")
-println("Similitude: documenting electromagnetic units")
 include("$dir/electromagneticdocs.jl")
-println("Similitude: documenting thermodynamic units")
 include("$dir/thermodynamicdocs.jl")
 println("Similitude: documenting physics constants")
 include("$dir/physicsdocs.jl")
