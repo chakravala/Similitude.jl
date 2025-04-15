@@ -86,10 +86,10 @@ function latexgroup2(io,D,U)
         if haskey(dict,D)
             print(io,dict[D])
         else
-            latexgroup(io,D,dimtext(U),"\\mathbb{1}")
+            latexgroup(io,D,dimlatex(U),"\\mathbb{1}")
         end
     else
-        latexgroup(io,D,dimtext(U),"\\mathbb{1}")
+        latexgroup(io,D,dimlatex(U),"\\mathbb{1}")
     end
 end
 

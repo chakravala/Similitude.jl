@@ -287,58 +287,62 @@ function latexquotient(x,U)
     str1 = String(take!(io))
     for j ∈ 1:length(x.second)
         y = x.second[j]
-        print(io,"$y \\[")
+        print(io,"$y \$\\left[")
         Similitude.latexgroup(io,Similitude.evaldim(y))
-        print(io,"\\]")
+        print(io,"\\right]\$")
         j<length(x.second) && print(io,", ")
     end
-    Values(str1,String(take!(io)))
+    Values("\$$str1\$",String(take!(io)))
 end
 
 function latexquantity(q::Group)
     io = IOBuffer()
+    print(io,"\$")
     FieldAlgebra.special_print(io,product(q))
-    print(io, " \\[\\mathbb{1}\\]")
+    print(io, "\$ \$\\left[\\mathbb{1}\\right]\$")
     str1 = String(take!(io))
     FieldAlgebra.latexgroup_pre(io,q,FieldAlgebra.latext(q),'1')
-    Values(str1,String(take!(io)),"Universe")
+    Values(str1,"\$$(String(take!(io)))\$","Universe")
 end
 function latexquantity(q::LogGroup)
     io = IOBuffer()
+    print(io,"\$")
     FieldAlgebra.special_print(io,product(q))
-    print(io, " \\[\\mathbb{1}\\]")
+    print(io, "\$ \$\\left[\\mathbb{1}\\right]\$")
     Values(String(take!(io)),"","Universe") # skip latexgroup_pre for log (sackur tetrode)
 end
-function latexquantity(q::Quantity{U}) where U
+function latexquantity(q::Quantity{U,T}) where {U,T}
     v = 𝟏*q.v
     io = IOBuffer()
-    FieldAlgebra.special_print(io,product(q.v))
-    print(io, " \\[")
+    print(io,"\$")
+    FieldAlgebra.special_print(io,product(v))
+    print(io, "\$ \$\\left[")
     latexgroup(io,normal(U)(dimensions(q)),U)
-    print(io, "\\]")
+    print(io, "\\right]\$")
     str1 = String(take!(io))
     FieldAlgebra.latexgroup_pre(io,q.v,FieldAlgebra.latext(v),'1')
-    Values(str1,String(take!(io)),unitname(U))
+    Values(str1,"\$$(String(take!(io)))\$",unitname(U))
 end
 function latexquantity(q::Similitude.ConvertUnit{U,S})  where {U,S}
     io = IOBuffer()
     rat = ratio(dimensions(q),U,S)
+    print(io,"\$")
     FieldAlgebra.special_print(io,product(rat))
     d = convertdim(dimensions(q),U,S)
-    print(io, " \\[")
+    print(io, "\$ \$\\left[")
     latexgroup(io,normal(S)(d),S)
-    print(io, "\\]/\\[")
+    print(io, "\\right]/\\left[")
     latexgroup(io,normal(U)(d),U)
-    print(io, "\\]")
+    print(io, "\\right]\$")
     str1 = String(take!(io))
     FieldAlgebra.latexgroup_pre(io,rat,FieldAlgebra.latext(rat),'1')
-    Values(str1,String(take!(io)),"$(unitname(U)) -> $(unitname(S))")
+    Values(str1,"\$$(String(take!(io)))\$","$(unitname(U)) -> $(unitname(S))")
 end
 
 function latexdimensions(D,U)
     io = IOBuffer()
     latexgroup(io,U(D),U)
-    String(take!(io))
+    "\$$(String(take!(io)))\$"
 end
 latexdimensions(D,U::Tuple) = latexdimensions.(Ref(D),U)
 latexdimensions(D::Vector,U::Tuple) = latexdimensions.(D,Ref(U))

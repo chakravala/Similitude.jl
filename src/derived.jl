@@ -448,10 +448,10 @@ dimlistlatex(U) = join(isodimlatex.(Ref(U),usq), ", ")
 function isodimlatex(U,D)
     UD = U(D)
     io = IOBuffer()
-    latexgroup(io,D,U)
+    Similitude.latexgroup(io,D,U)
     if D≠UD
         print(io,"=")
-        latexgroup(io,CONSTDIM ? param(UD) : UD)
+        Similitude.latexgroup(io,CONSTDIM ? param(UD) : UD)
     end
     #print(io,"=")
     #latexgroup(io,D,normal(U))
@@ -564,13 +564,13 @@ end
 
 @unitex MetricTurn "\\text{kgf}" "\\text{kg}" "\\text{m}" "\\text{s}" "\\text{C}" "\\text{K}" "\\text{mol}" "\\text{lm}" "\\tau"
 @unitex MetricSpatian "\\text{kgf}" "\\text{kg}" "\\text{m}" "\\text{s}" "\\text{C}" "\\text{K}" "\\text{mol}" "\\text{lm}" "\\varsigma"
-@unitex British "\\text{lb}" "\\text{slug}" "\\text{ft}" "\\text{s}" "\\text{C}" "^\\circ\\text{R}" "\\text{slug-mol}"
-@unitex English "\\text{lbf}" "\\text{lbm}" "\\text{ft}" "\\text{s}" "\\text{C}" "^\\circ\\text{R}" "\\text{lb-mol}"
-@unitex IPS "\\text{lb}" "\\text{slinch}" "\\text{in}" "\\text{s}" "\\text{C}" "^\\circ\\text{R}" "\\text{slinch-mol}"
-@unitex FPS "\\text{pdl}" "\\text{lb}" "\\text{ft}" "\\text{s}" "\\text{C}" "^\\circ\\text{R}" "\\text{lb-mol}"
+@unitex British "\\text{lb}" "\\text{slug}" "\\text{ft}" "\\text{s}" "\\text{C}" "{^\\circ}\\text{R}" "\\text{slug-mol}"
+@unitex English "\\text{lbf}" "\\text{lbm}" "\\text{ft}" "\\text{s}" "\\text{C}" "{^\\circ}\\text{R}" "\\text{lb-mol}"
+@unitex IPS "\\text{lb}" "\\text{slinch}" "\\text{in}" "\\text{s}" "\\text{C}" "{^\\circ}\\text{R}" "\\text{slinch-mol}"
+@unitex FPS "\\text{pdl}" "\\text{lb}" "\\text{ft}" "\\text{s}" "\\text{C}" "{^\\circ}\\text{R}" "\\text{lb-mol}"
 @unitex IAU☉ "\\text{M}_\\odot \\text{f}" "\\text{M}_\\odot" "\\text{au}" "\\text{D}" "\\text{C}" "\\text{K}" "\\text{mol}"
-@unitex MPH "\\text{lbf}" "\\text{lb}" "\\text{mi}" "\\text{h}" "\\text{C}" "^\\circ\\text{R}" "\\text{lb-mol}"
-@unitex FFF "\\text{firf}" "\\text{fir}" "\\text{fur}" "\\text{ftn}" "\\infty" "^\\circ\\text{R}" "\\text{fir-mol}"
+@unitex MPH "\\text{lbf}" "\\text{lb}" "\\text{mi}" "\\text{h}" "\\text{C}" "{^\\circ}\\text{R}" "\\text{lb-mol}"
+@unitex FFF "\\text{firf}" "\\text{fir}" "\\text{fur}" "\\text{ftn}" "\\infty" "{^\\circ}\\text{R}" "\\text{fir-mol}"
 @unitex Hartree "F" "M" "\\text{a}_0" "T" "\\text{e}" "Θ" "N" "J"
 @unitex QCDoriginal "F" "\\text{m}_\\text{p}" "L" "T" "\\text{e}" "Θ" "N" "J"
 @unitex QCD "F" "\\text{m}_\\text{p}" "L" "T" "Q" "Θ" "N" "J"
