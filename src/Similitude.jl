@@ -160,7 +160,8 @@ dimlatex(::typeof(normal(Unified))) = Values("\\text{k}_\\text{B}","\\hbar","\\t
 
 export Unified
 unitname(::typeof(normal(Unified))) = "Unified"
-(u::typeof(normal(Unified)))(d::Group) = d#UnitSystem(d)
+(u::typeof(normal(Unified)))(d::Group) = UnitSystem(d)
+(u::typeof(Unified))(d::Group) = d#UnitSystem(d)
 
 for unit ∈ Convert
     if unit ∉ (:dimensionless,:length,:time,:angle,:molarmass,:luminousefficacy)
@@ -314,14 +315,22 @@ end
 function latexquantity(q::Quantity{U,T}) where {U,T}
     v = 𝟏*q.v
     io = IOBuffer()
-    print(io,"\$")
-    FieldAlgebra.special_print(io,product(v))
-    print(io, "\$ \$\\left[")
-    latexgroup(io,normal(U)(dimensions(q)),U)
-    print(io, "\\right]\$")
-    str1 = String(take!(io))
-    FieldAlgebra.latexgroup_pre(io,q.v,FieldAlgebra.latext(v),'1')
-    Values(str1,"\$$(String(take!(io)))\$",unitname(U))
+    if typeof(q.v) <: Group{:USQ}
+        FieldAlgebra.latexgroup_pre(io,q.v,FieldAlgebra.latext(q.v),'𝟙')
+        str1 = "\$$(String(take!(io)))\$"
+        FieldAlgebra.latexgroup_pre(io,UnitSystem(q.v),dimlatex(U),'1')
+        str2 = "\$\\left[$(String(take!(io)))\\right]\$"
+    else
+        print(io,"\$")
+        FieldAlgebra.special_print(io,product(v))
+        print(io, "\$ \$\\left[")
+        latexgroup(io,normal(U)(dimensions(q)),U)
+        print(io, "\\right]\$")
+        str1 = String(take!(io))
+        FieldAlgebra.latexgroup_pre(io,q.v,FieldAlgebra.latext(v),'1')
+        str2 = "\$$(String(take!(io)))\$"
+    end
+    Values(str1,str2,unitname(U))
 end
 function latexquantity(q::Similitude.ConvertUnit{U,S})  where {U,S}
     io = IOBuffer()
@@ -343,6 +352,11 @@ function latexdimensions(D,U)
     io = IOBuffer()
     latexgroup(io,U(D),U)
     "\$$(String(take!(io)))\$"
+end
+function latexdimensions(D,U::typeof(normal(Unified)))
+    io = IOBuffer()
+    latexgroup(io,U(D),U)
+    "\$\\left[$(String(take!(io)))\\right]\$"
 end
 latexdimensions(D,U::Tuple) = latexdimensions.(Ref(D),U)
 latexdimensions(D::Vector,U::Tuple) = latexdimensions.(D,Ref(U))
