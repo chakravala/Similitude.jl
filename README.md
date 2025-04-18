@@ -3,6 +3,7 @@
 *Dimensions and Quantities for UnitSystems*
 
 [![DOI](https://zenodo.org/badge/320717758.svg)](https://zenodo.org/badge/latestdoi/320717758)
+[![Docs Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://units.crucialflow.com)
 [![Build status](https://ci.appveyor.com/api/projects/status/3fd8dauls91okw8q?svg=true)](https://ci.appveyor.com/project/chakravala/similitude-jl)
 
 In the base `UnitSystems` package, simply `Float64` numbers are used to generate the group of `UnitSystem` constants.
@@ -50,7 +51,7 @@ Eleven fundamental constants `kB`, `ħ`, `𝘤`, `μ₀`, `mₑ`, `Mᵤ`, `Kcd`,
 These are the constants `boltzmann`, `planckreduced`, `lightspeed`, `vacuumpermeability`, `electronmass`, `molarmass`, `luminousefficacy`, `angle`, `rationalization`, `lorentz`, and `gravity`.
 Different choices of natural units or physical measurements result in a variety of unit systems for many purposes.
 
-Main documentation is at https://geophysics.crucialflow.com/dev/unitsystems
+Main documentation is at https://units.crucialflow.com/unitsystems
 
 Historically, older electromagnetic unit systems also relied on a `rationalization` constant `λ` and a `lorentz` force proportionality constant `αL`.
 In most unit systems these extra constants have a value of `1` unless specified.
@@ -64,7 +65,7 @@ Primarily the `Metric` SI unit system is used in addition to the historic `Engli
 These constants induce derived values for `avogadro`, `boltzmann`, `molargas`, `planck`, `planckreduced`, `lightspeed`, `planckmass`, `dalton`, `protonmass`, `electronmass`, `newton`, `einstein`, `vacuumpermeability`, `vacuumpermittivity`, `electrostatic`, and
 additional constants `molarmass`, `luminousefficacy`, `gravity`, `angle`, `turn`, `spat`, `stefan`, `radiationdensity`, `magnetostatic`, `lorentz`, `biotsavart`, `rationalization`, `vacuumimpedance`, `elementarycharge`, `magneton`, `conductancequantum`, `faraday`, `magneticfluxquantum`, `josephson`, `klitzing`, `hartree`, `rydberg`, `bohr`.
 
-Physics constant documentation is at https://geophysics.crucialflow.com/dev/constants
+Physics constant documentation is at https://units.crucialflow.com/constants
 
 Standardized unit/derived quantities are `hyperfine`, `loschmidt`, `wienwavelength`, `wienfrequency`, `mechanicalheat`, `eddington`, `solarmass`, `jupitermass`, `earthmass`, `lunarmass`, `earthradius`, `greatcircle`, `radarmile`, `hubble`, `cosmological`, `radian`, `steradian`, `degree`, `squaredegree`, `gradian`, `arcminute`, `arcsecond`, `second`, `minute`, `hour`, `day`, `gaussianmonth`, `siderealmonth`, `synodicmonth`, `year`, `gaussianyear`, `siderealyear`, `jovianyear`, `angstrom`, `inch`, `foot`, `surveyfoot`, `yard`, `meter`, `earthmeter`, `mile`, `statutemile`, `meridianmile`, `admiraltymile`, `nauticalmile`, `lunardistance`, `astronomicalunit`, `jupiterdistance`, `lightyear`, `parsec`, `bubnoff`, `ips`, `fps`, `fpm`, `ms`, `kmh`, `mph`, `knot`, `mps`, `barn`, `hectare`, `acre`, `surveyacre`, `liter`, `gallon`, `quart`, `pint`, `cup`, `fluidounce`, `teaspoon`, `tablespoon`, `grain`, `gram`, `earthgram`, `kilogram`, `tonne`, `ton`, `pound`, `ounce`, `slug`, `slinch`, `hyl`, `dyne`, `newton`, `poundal`, `poundforce`, `kilopond`, `psi`, `pascal`, `bar`, `barye`, `technicalatmosphere`, `atmosphere`, `inchmercury`, `torr`, `electronvolt`, `erg`, `joule`, `footpound`, `calorie`, `kilocalorie`, `meancalorie`, `earthcalorie`, `thermalunit`, `gasgallon`, `tontnt`, `watt`, `horsepower`, `horsepowerwatt`, `horsepowermetric`, `electricalhorsepower`, `tonsrefrigeration`, `boilerhorsepower`, `coulomb`, `earthcoulomb`, `ampere`, `volt`, `henry`, `ohm`, `siemens`, `farad`, `weber`, `tesla`, `abcoulomb`, `abampere`, `abvolt`, `abhenry`, `abohm`, `abmho`, `abfarad`, `maxwell`, `gauss`, `oersted`, `gilbert`, `statcoulomb`, `statampere`, `statvolt`, `stathenry`, `statohm`, `statmho`, `statfarad`, `statweber`, `stattesla`, `kelvin`, `rankine`, `celsius`, `fahrenheit`, `sealevel`, `boiling`, `mole`, `earthmole`, `poundmole`, `slugmole`, `slinchmole`, `katal`, `amagat`, `lumen`, `candela`, `lux`, `phot`, `footcandle`, `nit`, `apostilb`, `stilb`, `lambert`, `footlambert`, `bril`, `neper`, `bel`, `decibel`, `hertz`, `apm`, `rpm`, `kayser`, `diopter`, `gforce`, `galileo`, `eotvos`, `darcy`, `poise`, `reyn`, `stokes`, `rayl`, `mpge`, `langley`, `jansky`, `solarflux`, `curie`, `gray`, `roentgen`, `rem`.
 
@@ -72,7 +73,7 @@ Standard physics units are at https://geophysics.crucialflow.com/dev/units
 
 Additional reference `UnitSystem` variants: `EMU`, `ESU`, `Gauss`, `LorentzHeaviside`, `SI2019`, `SI1976`, `CODATA`, `Conventional`, `International`, `InternationalMean`, `Engineering`, `Gravitational`, `IAU`, `IAUE`, `IAUJ`, `FPS`, `IPS`, `British`, `Survey`, `Hubble`, `Cosmological`, `CosmologicalQuantum`, `Meridian`, `Nautical`, `MPH`, `KKH`, `MTS`, `FFF`; and natural atomic units based on gravitational `coupling` and `finestructure` constant (`Planck`, `PlanckGauss`, `Stoney`, `Hartree`, `Rydberg`, `Schrodinger`, `Electronic`, `Natural`, `NaturalGauss`, `QCD`, `QCDGauss`, and `QCDoriginal`).
 
-Unit conversion documentation is at https://geophysics.crucialflow.com/dev/convert
+Unit conversion documentation is at https://units.crucialflow.com/convert
 
 **Derived Unit conversions:**
 

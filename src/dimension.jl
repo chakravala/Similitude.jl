@@ -154,7 +154,7 @@ end
 const 𝟙 = dimensionless
 const USQ = Values(F,M,L,T,Q,Θ,N,J,A,R,C)
 const usq = USQ
-const usqlatex = Values("\\text{k}_\\text{B}","\\text{N}_\\text{A}","\\hbar","\\text{c}","\\text{e}","\\text{K}_\\text{cd}","\\Delta\\nu_\\text{Cs}","\\text{R}_{\\infty}","\\alpha","\\mu_\\text{eu}","\\mu_\\text{pu}","\\Omega_{\\Lambda}","\\text{H}_0","\\text{g}_0","\\text{a}_\\text{j}","\\text{au}","\\text{ft}","\\text{ft}_\\text{US}","\\text{lb}","\\text{T}_0","\\text{atm}","\\text{in}_\\text{Hg}","\\text{R}_\\text{K}^{90}","\\text{K}_\\text{J}^{90}","\\text{R}_\\text{K}","\\text{K}_\\text{J}","\\text{R}_\\text{u}","\\Omega_\\text{it}","\\text{V}_\\text{it}","\\text{k}_\\text{G}","\\text{m}_\\text{P}","\\text{GM}_\\text{E}","\\text{GM}_\\text{J}","\\varphi","\\gamma","e","\\tau","2","3","5","7","11","19","43")
+const usqlatex = Values("\\text{k}_\\text{B}","\\text{N}_\\text{A}","\\hbar","\\text{c}","\\text{e}","\\text{K}_\\text{cd}","\\Delta\\nu_\\text{Cs}","\\text{R}_{\\infty}","\\alpha","\\mu_\\text{eu}","\\mu_\\text{pu}","\\Omega_{\\Lambda}","\\text{H}_0","\\text{g}_0","\\text{a}_\\text{j}","\\text{au}","\\text{ft}","\\text{ft}_\\text{US}","\\text{lb}","\\text{T}_0","\\text{atm}","\\text{in}_\\text{Hg}","{\\text{R}_\\text{K}^{90}}","{\\text{K}_\\text{J}^{90}}","\\text{R}_\\text{K}","\\text{K}_\\text{J}","\\text{R}_\\text{u}","\\Omega_\\text{it}","\\text{V}_\\text{it}","\\text{k}_\\text{G}","\\text{m}_\\text{P}","\\text{GM}_\\text{E}","\\text{GM}_\\text{J}","\\varphi","\\gamma","e","\\tau","2","3","5","7","11","19","43")
 
 naturalunits(U) = [x=>x(U) for x ∈ Similitude.USQ]
 morphism(U) = [getproperty.(param.(U.(Similitude.usq)),:v)[j][i] for i ∈ 1:11, j ∈ 1:11]
