@@ -59,7 +59,7 @@ function showgroup2(io,D,U)
             showgroup(io,D,dimtext(U),'𝟙')
         end
     else
-        showgroup(io,nam≠:Unified ? D : UnitSystem(D),dimtext(U),'𝟙')
+        showgroup(io,D,dimtext(U),'𝟙')
     end
 end
 
