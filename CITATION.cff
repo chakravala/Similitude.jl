@@ -9,3 +9,18 @@ version: 0.3.2
 doi: 10.5281/zenodo.15224852
 date-released: 2025-04-15
 url: "https://github.com/chakravala/Similitude.jl"
+preferred-citation:
+  type: article
+  authors:
+  - family-names: "Reed"
+    given-names: "Michael"
+    orcid: "https://orcid.org/0000-0002-8006-7816"
+  doi: "10.5281/zenodo.101519786"
+  journal: "Crucial Flow Research"
+  month: 1
+  start: 1 # First page number
+  end: 706 # Last page number
+  title: "UnitSystems.jl and the Unified System of Quantities (USQ)"
+  issue: 1
+  volume: 1
+  year: 2020
